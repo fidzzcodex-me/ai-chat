@@ -1,0 +1,13 @@
+{
+  "name": "kry-ai",
+  "version": "1.0.0",
+  "description": "KRY AI - Intelligent Chat Assistant",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build needed'",
+    "start": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
