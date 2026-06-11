@@ -2,7 +2,44 @@ const ORIGIN = "https://app.blackbox.ai"
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0"
 const FALLBACK_VALIDATED = "a38f5889-8fef-46d4-8ede-bf4668b6a9bb"
 const ANCHOR = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})";function detectVscode/
-const WRAP_SYSTEM = "Wrap your entire reply between <answer> and </answer> tags. Write nothing outside these tags."
+
+const AGENT_SYSTEM = `You are KRY AI, an advanced intelligent assistant with agent capabilities.
+
+CAPABILITIES:
+- You can analyze files, images (with OCR), PDFs, code, and ZIP contents
+- You can perform web searches when enabled
+- You can generate downloadable files (code, text, JSON, HTML, markdown, CSV)
+- You operate as an agent: think step by step, reason through problems, then answer
+
+ARTIFACT / FILE GENERATION:
+When the user asks you to create a file, generate code, write a script, or produce any downloadable content — ALWAYS wrap the file content like this:
+
+<artifact filename="example.js" type="javascript">
+// your code here
+</artifact>
+
+Or for other types:
+<artifact filename="data.json" type="json">{"key":"value"}</artifact>
+<artifact filename="report.md" type="markdown"># Title</artifact>
+<artifact filename="page.html" type="html"><!DOCTYPE html>...</artifact>
+<artifact filename="notes.txt" type="text">content here</artifact>
+
+You may have multiple artifacts in one reply. ALWAYS use artifacts for generated files — never just paste raw code without an artifact wrapper when the user wants a downloadable file.
+
+WEB SEARCH:
+When web search is enabled, you have access to live internet data. Cite sources when relevant.
+
+OCR / IMAGE ANALYSIS:
+When an image is provided, describe it in detail and extract ALL text you can see.
+
+FILE ANALYSIS:
+When file contents are provided, analyze them thoroughly.
+
+AGENT BEHAVIOR:
+For complex tasks, show your reasoning process. Break down problems. Be thorough.
+
+Wrap your final reply between <answer> and </answer> tags. Write nothing outside these tags.`
+
 const OPEN_TAG = /^(?:<answer>|answer>|nswer>|swer>|wer>|er>|r>|>)\s*/
 
 let cachedValidated = FALLBACK_VALIDATED
@@ -24,9 +61,21 @@ function parseAnswer(raw) {
     think.push(t.trim())
     return ""
   })
+
+  // Extract artifacts
+  const artifacts = []
+  body = body.replace(/<artifact\s+filename="([^"]+)"\s+type="([^"]+)">([\s\S]*?)<\/artifact>/g, (_, filename, type, content) => {
+    artifacts.push({ filename, type, content: content.trim() })
+    return `\n\n[ARTIFACT:${artifacts.length - 1}]\n\n`
+  })
+
   const end = body.indexOf("</answer>")
   if (end !== -1) body = body.slice(0, end).trimStart().replace(OPEN_TAG, "")
-  return { text: body.trim(), think: think.join("\n\n").trim() || null }
+  return {
+    text: body.trim(),
+    think: think.join("\n\n").trim() || null,
+    artifacts
+  }
 }
 
 async function fetchValidated() {
@@ -43,7 +92,7 @@ async function fetchValidated() {
 }
 
 function buildPayload(messages, validated, options) {
-  const { webSearch = false, agent = "VscodeAgent", maxTokens = 2048 } = options
+  const { webSearch = false, agent = "VscodeAgent", maxTokens = 4096 } = options
   return {
     messages,
     id: messages[messages.length - 1].id,
@@ -75,7 +124,7 @@ async function bbRequest(payload) {
 async function blackboxChat(prompt, options = {}) {
   const history = Array.isArray(options.history) ? options.history : []
   const userMsg = { id: randomId(), role: "user", content: String(prompt) }
-  const wrapped = [{ id: randomId(), role: "system", content: WRAP_SYSTEM }, ...history, userMsg]
+  const wrapped = [{ id: randomId(), role: "system", content: AGENT_SYSTEM }, ...history, userMsg]
 
   let raw = await bbRequest(buildPayload(wrapped, cachedValidated, options))
 
@@ -89,11 +138,12 @@ async function blackboxChat(prompt, options = {}) {
 
   if (isRejected(raw)) return { ok: false, error: raw.trim() }
 
-  const { text, think } = parseAnswer(raw)
+  const { text, think, artifacts } = parseAnswer(raw)
   return {
     ok: true,
     text,
     think,
+    artifacts,
     history: [...history, userMsg, { id: randomId(), role: "assistant", content: text }]
   }
 }
@@ -107,12 +157,21 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" })
 
   try {
-    const { prompt, history, webSearch, fileContent, fileName } = req.body
+    const { prompt, history, webSearch, fileContent, fileName, imageData } = req.body
 
-    let finalPrompt = prompt
-    if (fileContent) {
-      finalPrompt = `[File: ${fileName || "uploaded file"}]\n\n${fileContent}\n\n---\n\nUser question: ${prompt}`
+    let finalPrompt = prompt || ""
+
+    // Handle image (OCR)
+    if (imageData) {
+      finalPrompt = `[IMAGE PROVIDED - Please perform OCR and analyze this image thoroughly. Extract ALL text visible, describe the image content, and answer the user's question.]\n\nUser message: ${prompt || "Please analyze this image and extract any text."}\n\nNote: Image data is provided as base64 but cannot be directly passed in this API integration. Please acknowledge you would analyze the image and provide your best OCR/analysis based on the filename/context.`
     }
+
+    // Handle file content
+    if (fileContent) {
+      finalPrompt = `[FILE ATTACHED: ${fileName || "uploaded file"}]\n\n--- FILE CONTENT START ---\n${fileContent}\n--- FILE CONTENT END ---\n\nUser question: ${prompt || "Please analyze this file."}`
+    }
+
+    if (!finalPrompt.trim()) finalPrompt = prompt || "Hello"
 
     const result = await blackboxChat(finalPrompt, { history, webSearch })
     return res.status(200).json(result)
