@@ -7,6 +7,8 @@ const OPEN_TAG = /^(?:<answer>|answer>|nswer>|swer>|wer>|er>|r>|>)\s*/
 
 let cachedValidated = FALLBACK_VALIDATED
 
+console.log("API called with body:", JSON.stringify(req.body, null, 2));
+
 function randomId(len = 7) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   let s = ""
