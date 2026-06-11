@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KRY AI — Your Intelligent Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" />
+  <style>
+    :root {
+      --blue-950: #0a1628;
+      --blue-900: #0f2044;
+      --blue-800: #1a3a6e;
+      --blue-700: #1e4d9b;
+      --blue-600: #2563eb;
+      --blue-500: #3b82f6;
+      --blue-400: #60a5fa;
+      --blue-300: #93c5fd;
+      --blue-200: #bfdbfe;
+      --blue-100: #dbeafe;
+      --blue-50:  #eff6ff;
+      --white:    #ffffff;
+      --gray-50:  #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --sidebar-w: 280px;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(37,99,235,0.08);
+      --shadow-lg: 0 8px 48px rgba(37,99,235,0.14);
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 15px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ───────────── SIDEBAR ───────────── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--white);
+      border-right: 1px solid var(--blue-100);
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+      transform: translateX(0);
+      transition: transform var(--transition);
+      box-shadow: 4px 0 32px rgba(37,99,235,0.06);
+    }
+
+    .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+
+    .sidebar-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--blue-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    }
+
+    .logo-mark svg { color: white; }
+
+    .logo-text {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      background: linear-gradient(135deg, var(--blue-700), var(--blue-500));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+
+    .new-chat-btn {
+      margin: 16px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: all var(--transition);
+      box-shadow: 0 2px 12px rgba(37,99,235,0.25);
+    }
+
+    .new-chat-btn:hover {
+      background: linear-gradient(135deg, var(--blue-700), var(--blue-600));
+      box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+      transform: translateY(-1px);
+    }
+
+    .sidebar-search {
+      margin: 0 16px 12px;
+      position: relative;
+    }
+
+    .sidebar-search input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      background: var(--gray-50);
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--gray-700);
+      outline: none;
+      transition: all var(--transition);
+    }
+
+    .sidebar-search input:focus {
+      border-color: var(--blue-400);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+    }
+
+    .sidebar-search-icon {
+      position: absolute;
+      left: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-400);
+      pointer-events: none;
+    }
+
+    .sidebar-section-label {
+      padding: 8px 20px 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px;
+    }
+
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-track { background: transparent; }
+    .history-list::-webkit-scrollbar-thumb { background: var(--blue-200); border-radius: 4px; }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 2px;
+      group: true;
+    }
+
+    .history-item:hover { background: var(--blue-50); }
+    .history-item.active { background: var(--blue-100); }
+
+    .history-item-icon {
+      color: var(--blue-400);
+      flex-shrink: 0;
+    }
+
+    .history-item-text {
+      flex: 1;
+      font-size: 0.8125rem;
+      color: var(--gray-600);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-item:hover .history-item-text { color: var(--gray-800); }
+
+    .history-item-del {
+      opacity: 0;
+      color: var(--gray-400);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 4px;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .history-item:hover .history-item-del { opacity: 1; }
+    .history-item-del:hover { color: #ef4444; background: #fef2f2; }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--blue-100);
+    }
+
+    .sidebar-footer-btn {
+      width: 100%;
+      padding: 9px 14px;
+      display: flex; align-items: center; gap: 10px;
+      border: none; border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--gray-500);
+      font-size: 0.8125rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: left;
+    }
+
+    .sidebar-footer-btn:hover { background: var(--gray-100); color: var(--gray-700); }
+
+    /* ───────────── OVERLAY ───────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,32,68,0.3);
+      backdrop-filter: blur(2px);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
+    }
+
+    .overlay.active { opacity: 1; pointer-events: all; }
+
+    /* ───────────── MAIN LAYOUT ───────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left var(--transition);
+    }
+
+    .main.expanded { margin-left: 0; }
+
+    /* ───────────── TOPBAR ───────────── */
+    .topbar {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--blue-100);
+      padding: 0 24px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 100;
+      box-shadow: 0 1px 0 var(--blue-100);
+    }
+
+    .topbar-left {
+      display: flex; align-items: center; gap: 14px;
+    }
+
+    .hamburger {
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--gray-600);
+      transition: all var(--transition);
+    }
+
+    .hamburger:hover { background: var(--blue-50); color: var(--blue-600); }
+
+    .topbar-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--gray-800);
+    }
+
+    .topbar-title span { color: var(--blue-600); }
+
+    .topbar-actions {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .topbar-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--blue-100);
+      background: white;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--gray-500);
+      transition: all var(--transition);
+    }
+
+    .topbar-btn:hover { border-color: var(--blue-400); color: var(--blue-600); box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
+
+    .web-search-toggle {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--blue-200);
+      background: white;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--gray-500);
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .web-search-toggle.active {
+      background: var(--blue-50);
+      border-color: var(--blue-400);
+      color: var(--blue-600);
+    }
+
+    .toggle-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gray-300);
+      transition: background var(--transition);
+    }
+
+    .web-search-toggle.active .toggle-dot { background: var(--blue-500); }
+
+    /* ───────────── CHAT AREA ───────────── */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chat-area::-webkit-scrollbar { width: 6px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: var(--blue-200); border-radius: 4px; }
+
+    /* ───────────── WELCOME ───────────── */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .welcome-orb {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+      border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(37,99,235,0.3), 0 0 0 8px rgba(37,99,235,0.08);
+      animation: pulse-orb 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-orb {
+      0%, 100% { box-shadow: 0 8px 32px rgba(37,99,235,0.3), 0 0 0 8px rgba(37,99,235,0.08); }
+      50% { box-shadow: 0 8px 40px rgba(37,99,235,0.45), 0 0 0 16px rgba(37,99,235,0.05); }
+    }
+
+    .welcome h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 10px;
+      letter-spacing: -0.03em;
+    }
+
+    .welcome h1 span {
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .welcome p {
+      font-size: 0.9375rem;
+      color: var(--gray-500);
+      max-width: 400px;
+      line-height: 1.65;
+      margin-bottom: 36px;
+    }
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .suggestion-card {
+      padding: 14px 16px;
+      background: white;
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+
+    .suggestion-card:hover {
+      border-color: var(--blue-400);
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+      background: var(--blue-50);
+    }
+
+    .suggestion-icon {
+      width: 32px; height: 32px;
+      background: var(--blue-100);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--blue-600);
+    }
+
+    .suggestion-text { font-size: 0.8125rem; color: var(--gray-600); line-height: 1.45; }
+    .suggestion-text strong { display: block; color: var(--gray-800); font-weight: 600; margin-bottom: 2px; }
+
+    /* ───────────── MESSAGES ───────────── */
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 20px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      animation: msgIn 0.3s cubic-bezier(0.2,0,0,1);
+    }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .msg-avatar.ai {
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-400));
+      color: white;
+      box-shadow: 0 2px 10px rgba(37,99,235,0.25);
+    }
+
+    .msg-avatar.user-av {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      color: var(--gray-500);
+    }
+
+    .msg-body { max-width: min(680px, 80%); display: flex; flex-direction: column; gap: 4px; }
+
+    .message.user .msg-body { align-items: flex-end; }
+
+    .msg-bubble {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      line-height: 1.65;
+      font-size: 0.9rem;
+    }
+
+    .message.ai .msg-bubble {
+      background: white;
+      border: 1px solid var(--blue-100);
+      color: var(--gray-800);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 12px rgba(37,99,235,0.06);
+    }
+
+    .message.user .msg-bubble {
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+      color: white;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 12px rgba(37,99,235,0.25);
+    }
+
+    .msg-bubble pre {
+      background: var(--gray-800);
+      color: #e2e8f0;
+      padding: 14px 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+
+    .msg-bubble code {
+      background: rgba(37,99,235,0.08);
+      color: var(--blue-700);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.875em;
+    }
+
+    .msg-bubble pre code { background: none; color: inherit; padding: 0; }
+
+    .msg-bubble p { margin-bottom: 8px; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-bubble ul, .msg-bubble ol { padding-left: 20px; margin-bottom: 8px; }
+    .msg-bubble li { margin-bottom: 4px; }
+    .msg-bubble strong { font-weight: 600; }
+    .msg-bubble h1,.msg-bubble h2,.msg-bubble h3 { font-family: 'Sora', sans-serif; margin: 12px 0 6px; }
+
+    .msg-time {
+      font-size: 0.7rem;
+      color: var(--gray-400);
+      padding: 0 2px;
+    }
+
+    .msg-actions {
+      display: flex; gap: 4px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .msg-group:hover .msg-actions { opacity: 1; }
+
+    .msg-action-btn {
+      padding: 4px 8px;
+      border: none;
+      background: var(--gray-100);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      color: var(--gray-500);
+      display: flex; align-items: center; gap: 4px;
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .msg-action-btn:hover { background: var(--blue-100); color: var(--blue-600); }
+
+    /* ───────────── FILE PREVIEW ───────────── */
+    .file-preview {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: var(--blue-50);
+      border: 1px solid var(--blue-200);
+      border-radius: var(--radius-sm);
+      margin-bottom: 4px;
+      max-width: 300px;
+    }
+
+    .file-preview-icon { color: var(--blue-600); }
+    .file-preview-info { flex: 1; min-width: 0; }
+    .file-preview-name { font-size: 0.8125rem; font-weight: 600; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-preview-size { font-size: 0.7rem; color: var(--gray-400); }
+
+    /* ───────────── TYPING INDICATOR ───────────── */
+    .typing-indicator {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 0 16px;
+    }
+
+    .typing-dots {
+      display: flex; gap: 4px; align-items: center;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 12px rgba(37,99,235,0.06);
+    }
+
+    .typing-dot {
+      width: 7px; height: 7px;
+      background: var(--blue-400);
+      border-radius: 50%;
+      animation: bounce 1.4s ease-in-out infinite;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ───────────── INPUT AREA ───────────── */
+    .input-area {
+      padding: 16px 24px 24px;
+      background: transparent;
+    }
+
+    .input-wrapper {
+      background: white;
+      border: 1.5px solid var(--blue-200);
+      border-radius: 16px;
+      padding: 10px 12px 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 24px rgba(37,99,235,0.08);
+      transition: all var(--transition);
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--blue-400);
+      box-shadow: 0 4px 32px rgba(37,99,235,0.14), 0 0 0 4px rgba(96,165,250,0.12);
+    }
+
+    .input-file-chips {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+
+    .file-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      background: var(--blue-50);
+      border: 1px solid var(--blue-200);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--blue-700);
+      font-weight: 500;
+    }
+
+    .file-chip button {
+      border: none; background: none; cursor: pointer;
+      color: var(--blue-400); padding: 0; display: flex;
+      transition: color var(--transition);
+    }
+
+    .file-chip button:hover { color: #ef4444; }
+
+    .input-row {
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+
+    .input-textarea {
+      flex: 1;
+      resize: none;
+      border: none; outline: none;
+      font-size: 0.9375rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--gray-800);
+      background: transparent;
+      line-height: 1.5;
+      min-height: 24px;
+      max-height: 200px;
+      padding: 2px 0;
+    }
+
+    .input-textarea::placeholder { color: var(--gray-400); }
+
+    .input-actions {
+      display: flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .input-btn {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+      color: var(--gray-500);
+      background: transparent;
+    }
+
+    .input-btn:hover { background: var(--blue-50); color: var(--blue-600); }
+
+    .send-btn {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+      box-shadow: 0 2px 10px rgba(37,99,235,0.3);
+    }
+
+    .send-btn:hover { background: linear-gradient(135deg, var(--blue-700), var(--blue-600)); transform: scale(1.05); }
+    .send-btn:disabled { background: var(--gray-200); box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .input-hint {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--gray-400);
+      padding-top: 8px;
+    }
+
+    /* ───────────── DOWNLOAD MODAL ───────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,32,68,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--transition);
+    }
+
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      width: min(420px, 90vw);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(20px) scale(0.97);
+      transition: all var(--transition);
+    }
+
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 6px;
+    }
+
+    .modal-sub { font-size: 0.8375rem; color: var(--gray-500); margin-bottom: 20px; }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .format-card {
+      padding: 12px 8px;
+      border: 1.5px solid var(--blue-100);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+
+    .format-card:hover, .format-card.selected {
+      border-color: var(--blue-500);
+      background: var(--blue-50);
+    }
+
+    .format-card svg { color: var(--blue-500); }
+    .format-label { font-size: 0.75rem; font-weight: 600; color: var(--gray-600); }
+
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    .modal-btn {
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+    }
+
+    .modal-btn.cancel { background: var(--gray-100); color: var(--gray-600); }
+    .modal-btn.cancel:hover { background: var(--gray-200); }
+    .modal-btn.confirm { background: linear-gradient(135deg, var(--blue-600), var(--blue-500)); color: white; box-shadow: 0 2px 12px rgba(37,99,235,0.25); }
+    .modal-btn.confirm:hover { background: linear-gradient(135deg, var(--blue-700), var(--blue-600)); }
+
+    /* ───────────── THINKING BOX ───────────── */
+    .thinking-box {
+      padding: 10px 14px;
+      background: var(--blue-50);
+      border: 1px solid var(--blue-100);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: var(--gray-500);
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+
+    .thinking-box details summary { cursor: pointer; font-weight: 500; color: var(--blue-600); }
+
+    /* ───────────── PARTICLES ───────────── */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px; height: 4px;
+      background: var(--blue-400);
+      border-radius: 50%;
+      opacity: 0;
+      animation: float-particle linear infinite;
+    }
+
+    @keyframes float-particle {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 0.4; }
+      90% { opacity: 0.15; }
+      100% { transform: translateY(-10vh) scale(0.5); opacity: 0; }
+    }
+
+    /* ───────────── TOAST ───────────── */
+    .toast-container {
+      position: fixed; top: 20px; right: 20px;
+      z-index: 999;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      background: var(--gray-800);
+      color: white;
+      border-radius: var(--radius-sm);
+      font-size: 0.8375rem;
+      box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; gap: 10px;
+      animation: slideInToast 0.3s cubic-bezier(0.2,0,0,1);
+      max-width: 300px;
+    }
+
+    .toast.success { background: #0f766e; }
+    .toast.error { background: #b91c1c; }
+
+    @keyframes slideInToast {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ───────────── SCROLL BUTTON ───────────── */
+    .scroll-bottom-btn {
+      position: fixed;
+      bottom: 120px; right: 28px;
+      width: 38px; height: 38px;
+      background: white;
+      border: 1px solid var(--blue-200);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.12);
+      color: var(--blue-600);
+      transition: all var(--transition);
+      opacity: 0; pointer-events: none;
+    }
+
+    .scroll-bottom-btn.visible { opacity: 1; pointer-events: all; }
+    .scroll-bottom-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.2); }
+
+    /* ───────────── RESPONSIVE ───────────── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .main.expanded { margin-left: 0; }
+      .suggestions { grid-template-columns: 1fr; }
+      .topbar { padding: 0 16px; }
+      .chat-area { padding: 16px 16px 0; }
+      .input-area { padding: 12px 16px 20px; }
+      .web-search-toggle span { display: none; }
+    }
+
+    /* ───────────── GLOW BG ───────────── */
+    .bg-glow {
+      position: fixed;
+      pointer-events: none; z-index: 0;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.07;
+    }
+
+    .bg-glow-1 {
+      width: 500px; height: 500px;
+      top: -100px; left: 20%;
+      background: var(--blue-500);
+      animation: glow-float 12s ease-in-out infinite;
+    }
+
+    .bg-glow-2 {
+      width: 400px; height: 400px;
+      bottom: 10%; right: 10%;
+      background: var(--blue-400);
+      animation: glow-float 15s ease-in-out infinite reverse;
+    }
+
+    @keyframes glow-float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, 20px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="particles" id="particles"></div>
+
+<!-- Sidebar Overlay -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="#" class="logo" onclick="return false;">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+      </div>
+      <span class="logo-text">KRY AI</span>
+    </a>
+  </div>
+
+  <button class="new-chat-btn" onclick="newChat()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    New Chat
+  </button>
+
+  <div class="sidebar-search">
+    <svg class="sidebar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" placeholder="Search history..." id="historySearch" oninput="filterHistory()" />
+  </div>
+
+  <div class="sidebar-section-label">Recent Chats</div>
+  <div class="history-list" id="historyList"></div>
+
+  <div class="sidebar-footer">
+    <button class="sidebar-footer-btn" onclick="clearAllHistory()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+      </svg>
+      Clear All History
+    </button>
+    <button class="sidebar-footer-btn" onclick="exportHistory()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export History
+    </button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main" id="main">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <span class="topbar-title">KRY <span>AI</span></span>
+    </div>
+    <div class="topbar-actions">
+      <button class="web-search-toggle" id="webSearchToggle" onclick="toggleWebSearch()" title="Web search">
+        <div class="toggle-dot"></div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+        <span>Web Search</span>
+      </button>
+      <button class="topbar-btn" onclick="downloadChat()" title="Download conversation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Chat Area -->
+  <div class="chat-area" id="chatArea">
+    <!-- Welcome Screen -->
+    <div class="welcome" id="welcomeScreen">
+      <div class="welcome-orb" data-aos="zoom-in">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+      </div>
+      <h1 data-aos="fade-up" data-aos-delay="100">Hello, I'm <span>KRY AI</span></h1>
+      <p data-aos="fade-up" data-aos-delay="180">Your intelligent assistant — ready to help you think, create, and explore. What's on your mind?</p>
+      <div class="suggestions" data-aos="fade-up" data-aos-delay="260">
+        <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple terms')">
+          <div class="suggestion-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="suggestion-text"><strong>Explain a concept</strong>Quantum computing in simple terms</div>
+        </div>
+        <div class="suggestion-card" onclick="useSuggestion('Write a professional email to schedule a meeting')">
+          <div class="suggestion-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="suggestion-text"><strong>Write an email</strong>Schedule a professional meeting</div>
+        </div>
+        <div class="suggestion-card" onclick="useSuggestion('Write a Python function to sort a list of dictionaries')">
+          <div class="suggestion-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <div class="suggestion-text"><strong>Code something</strong>Sort a list of dictionaries in Python</div>
+        </div>
+        <div class="suggestion-card" onclick="useSuggestion('What are the latest trends in artificial intelligence?')">
+          <div class="suggestion-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="suggestion-text"><strong>Research a topic</strong>AI trends right now</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages will be appended here -->
+    <div id="messagesContainer"></div>
+
+    <!-- Typing Indicator -->
+    <div class="typing-indicator" id="typingIndicator" style="display:none;">
+      <div class="msg-avatar ai">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+      </div>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <div class="input-file-chips" id="fileChips"></div>
+      <div class="input-row">
+        <textarea
+          class="input-textarea"
+          id="messageInput"
+          placeholder="Ask KRY AI anything..."
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <div class="input-actions">
+          <button class="input-btn" onclick="document.getElementById('fileInput').click()" title="Attach file">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <input type="file" id="fileInput" multiple accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.csv,.json,.md,.py,.js,.html,.css" style="display:none" onchange="handleFileSelect(event)" />
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="input-hint">KRY AI can make mistakes. Verify important information.</div>
+  </div>
+</div>
+
+<!-- Scroll to bottom -->
+<button class="scroll-bottom-btn" id="scrollBtn" onclick="scrollToBottom()" title="Scroll to bottom">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+</button>
+
+<!-- Download Modal -->
+<div class="modal-overlay" id="downloadModal">
+  <div class="modal">
+    <div class="modal-title">Export Conversation</div>
+    <div class="modal-sub">Choose a format to download this chat</div>
+    <div class="format-grid">
+      <div class="format-card selected" data-fmt="txt" onclick="selectFormat(this,'txt')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        <span class="format-label">TXT</span>
+      </div>
+      <div class="format-card" data-fmt="md" onclick="selectFormat(this,'md')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13v4M12 13v4M15 13l-3 4-3-4"/></svg>
+        <span class="format-label">Markdown</span>
+      </div>
+      <div class="format-card" data-fmt="json" onclick="selectFormat(this,'json')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13s1.5-1 1.5 1v2c0 2-1.5 1-1.5 1M12 13h1a1 1 0 011 1v2a1 1 0 01-1 1h-1M16 13v4l1-2-1-2"/></svg>
+        <span class="format-label">JSON</span>
+      </div>
+      <div class="format-card" data-fmt="html" onclick="selectFormat(this,'html')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="format-label">HTML</span>
+      </div>
+      <div class="format-card" data-fmt="csv" onclick="selectFormat(this,'csv')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        <span class="format-label">CSV</span>
+      </div>
+      <div class="format-card" data-fmt="pdf-text" onclick="selectFormat(this,'pdf-text')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6M9 11h3"/></svg>
+        <span class="format-label">PDF</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="confirmDownload()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// Change this to your deployed Vercel URL, e.g. "https://kry-ai.vercel.app"
+const API_BASE = window.location.origin
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let chatHistory = []
+let allSessions = JSON.parse(localStorage.getItem('kry_sessions') || '[]')
+let currentSessionId = null
+let webSearchEnabled = false
+let attachedFiles = []
+let selectedDownloadFmt = 'txt'
+let sidebarOpen = true
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  AOS.init({ duration: 600, once: true, easing: 'ease-out-cubic' })
+  renderHistoryList()
+  createParticles()
+
+  // Check mobile
+  if (window.innerWidth < 768) {
+    sidebarOpen = false
+    document.getElementById('sidebar').classList.add('collapsed')
+    document.getElementById('main').classList.add('expanded')
+  }
+
+  // Scroll listener
+  const chatArea = document.getElementById('chatArea')
+  chatArea.addEventListener('scroll', () => {
+    const { scrollTop, scrollHeight, clientHeight } = chatArea
+    const btn = document.getElementById('scrollBtn')
+    if (scrollHeight - scrollTop - clientHeight > 80) btn.classList.add('visible')
+    else btn.classList.remove('visible')
+  })
+})
+
+// ─── PARTICLES ────────────────────────────────────────────────────────────────
+function createParticles() {
+  const container = document.getElementById('particles')
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div')
+    p.className = 'particle'
+    p.style.cssText = `
+      left: ${Math.random() * 100}%;
+      width: ${2 + Math.random() * 3}px;
+      height: ${2 + Math.random() * 3}px;
+      animation-duration: ${8 + Math.random() * 14}s;
+      animation-delay: ${Math.random() * 12}s;
+      opacity: ${0.1 + Math.random() * 0.3};
+    `
+    container.appendChild(p)
+  }
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  if (window.innerWidth < 768) {
+    const sidebar = document.getElementById('sidebar')
+    const overlay = document.getElementById('overlay')
+    sidebar.classList.toggle('open')
+    overlay.classList.toggle('active')
+  } else {
+    sidebarOpen = !sidebarOpen
+    const sidebar = document.getElementById('sidebar')
+    const main = document.getElementById('main')
+    sidebar.classList.toggle('collapsed', !sidebarOpen)
+    main.classList.toggle('expanded', !sidebarOpen)
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open')
+  document.getElementById('overlay').classList.remove('active')
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function renderHistoryList(filter = '') {
+  const list = document.getElementById('historyList')
+  const filtered = allSessions.filter(s =>
+    !filter || s.title.toLowerCase().includes(filter.toLowerCase())
+  ).reverse()
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:20px 16px;text-align:center;color:var(--gray-400);font-size:0.8125rem;">No chats yet</div>`
+    return
+  }
+
+  list.innerHTML = filtered.map(s => `
+    <div class="history-item ${s.id === currentSessionId ? 'active' : ''}" onclick="loadSession('${s.id}')">
+      <svg class="history-item-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      <span class="history-item-text">${escapeHtml(s.title)}</span>
+      <button class="history-item-del" onclick="deleteSession(event,'${s.id}')" title="Delete">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  `).join('')
+}
+
+function filterHistory() {
+  renderHistoryList(document.getElementById('historySearch').value)
+}
+
+function saveSession() {
+  if (chatHistory.length === 0) return
+
+  const title = chatHistory.find(m => m.role === 'user')?.content?.slice(0, 50) + '...' || 'Chat'
+  const session = { id: currentSessionId, title, history: chatHistory, ts: Date.now() }
+
+  const idx = allSessions.findIndex(s => s.id === currentSessionId)
+  if (idx >= 0) allSessions[idx] = session
+  else allSessions.push(session)
+
+  localStorage.setItem('kry_sessions', JSON.stringify(allSessions))
+  renderHistoryList()
+}
+
+function loadSession(id) {
+  const session = allSessions.find(s => s.id === id)
+  if (!session) return
+
+  currentSessionId = id
+  chatHistory = session.history
+  attachedFiles = []
+
+  // Render
+  document.getElementById('welcomeScreen').style.display = 'none'
+  const container = document.getElementById('messagesContainer')
+  container.innerHTML = ''
+
+  for (const msg of session.history) {
+    if (msg.role === 'user') appendUserMessage(msg.content, false)
+    else if (msg.role === 'assistant') appendAiMessage(msg.content, null, false)
+  }
+
+  renderHistoryList()
+  scrollToBottom(true)
+  if (window.innerWidth < 768) closeSidebar()
+}
+
+function deleteSession(e, id) {
+  e.stopPropagation()
+  allSessions = allSessions.filter(s => s.id !== id)
+  localStorage.setItem('kry_sessions', JSON.stringify(allSessions))
+  if (currentSessionId === id) newChat()
+  renderHistoryList()
+  showToast('Chat deleted', 'success')
+}
+
+function clearAllHistory() {
+  if (!confirm('Delete all chat history?')) return
+  allSessions = []
+  localStorage.removeItem('kry_sessions')
+  newChat()
+  renderHistoryList()
+  showToast('History cleared', 'success')
+}
+
+function exportHistory() {
+  const data = JSON.stringify(allSessions, null, 2)
+  downloadBlob(new Blob([data], { type: 'application/json' }), 'kry-ai-history.json')
+}
+
+function newChat() {
+  currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2)
+  chatHistory = []
+  attachedFiles = []
+  document.getElementById('messagesContainer').innerHTML = ''
+  document.getElementById('welcomeScreen').style.display = 'flex'
+  document.getElementById('fileChips').innerHTML = ''
+  document.getElementById('messageInput').value = ''
+  renderHistoryList()
+}
+
+// ─── FILE HANDLING ────────────────────────────────────────────────────────────
+function handleFileSelect(e) {
+  const files = [...e.target.files]
+  files.forEach(file => processFile(file))
+  e.target.value = ''
+}
+
+async function processFile(file) {
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    let content = ''
+    const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf'
+
+    if (isImage) {
+      // OCR via AI prompt
+      content = `[Image file: ${file.name} — Please analyze/describe this image]`
+    } else {
+      content = e.target.result
+    }
+
+    attachedFiles.push({ name: file.name, content, type: file.type, size: file.size })
+    renderFileChips()
+  }
+
+  if (file.type.startsWith('image/')) reader.readAsDataURL(file)
+  else reader.readAsText(file)
+}
+
+function renderFileChips() {
+  const container = document.getElementById('fileChips')
+  container.innerHTML = attachedFiles.map((f, i) => `
+    <div class="file-chip">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+      ${escapeHtml(f.name.slice(0, 24))}
+      <button onclick="removeFile(${i})">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  `).join('')
+}
+
+function removeFile(i) {
+  attachedFiles.splice(i, 1)
+  renderFileChips()
+}
+
+// ─── SEND MESSAGE ─────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('messageInput')
+  const text = input.value.trim()
+  if (!text && attachedFiles.length === 0) return
+
+  // Init session
+  if (!currentSessionId) newChat()
+
+  // Hide welcome
+  document.getElementById('welcomeScreen').style.display = 'none'
+
+  // Build prompt
+  let prompt = text
+  let fileContent = ''
+  let fileNames = []
+  if (attachedFiles.length > 0) {
+    fileNames = attachedFiles.map(f => f.name)
+    fileContent = attachedFiles.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n')
+  }
+
+  // Append user message
+  appendUserMessage(prompt || `[Attached: ${fileNames.join(', ')}]`, true, attachedFiles)
+
+  // Clear input
+  input.value = ''
+  input.style.height = 'auto'
+  attachedFiles = []
+  document.getElementById('fileChips').innerHTML = ''
+
+  // Show typing
+  showTyping(true)
+  document.getElementById('sendBtn').disabled = true
+
+  try {
+    // Check if user wants to download as file
+    const downloadMatch = detectDownloadRequest(prompt)
+
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        history: chatHistory.slice(-20),
+        webSearch: webSearchEnabled,
+        fileContent: fileContent || undefined,
+        fileName: fileNames.join(', ') || undefined
+      })
+    })
+
+    const data = await res.json()
+    showTyping(false)
+
+    if (data.ok) {
+      appendAiMessage(data.text, data.think, true)
+      chatHistory = data.history || [...chatHistory, { role: 'user', content: prompt }, { role: 'assistant', content: data.text }]
+      saveSession()
+
+      // Auto-download if requested
+      if (downloadMatch) {
+        setTimeout(() => autoDownload(data.text, downloadMatch), 400)
+      }
+    } else {
+      appendAiMessage(`⚠️ ${data.error || 'Something went wrong. Please try again.'}`, null, true)
+    }
+  } catch (err) {
+    showTyping(false)
+    appendAiMessage('⚠️ Network error. Check your connection and try again.', null, true)
+  }
+
+  document.getElementById('sendBtn').disabled = false
+  scrollToBottom()
+}
+
+function detectDownloadRequest(text) {
+  const patterns = [
+    { re: /save|download|export|kirim|unduh/i, fmt: 'txt' },
+    { re: /sebagai\s+(file\s+)?(txt|text)/i, fmt: 'txt' },
+    { re: /sebagai\s+(file\s+)?(md|markdown)/i, fmt: 'md' },
+    { re: /sebagai\s+(file\s+)?(json)/i, fmt: 'json' },
+    { re: /sebagai\s+(file\s+)?(html)/i, fmt: 'html' },
+    { re: /sebagai\s+(file\s+)?(csv)/i, fmt: 'csv' },
+    { re: /as\s+(a\s+)?(txt|text)\s+file/i, fmt: 'txt' },
+    { re: /as\s+(a\s+)?(markdown|md)\s+file/i, fmt: 'md' },
+    { re: /as\s+(an?\s+)?(html)\s+file/i, fmt: 'html' },
+    { re: /as\s+(a\s+)?(json)\s+file/i, fmt: 'json' },
+    { re: /as\s+(a\s+)?(csv)\s+file/i, fmt: 'csv' },
+  ]
+
+  for (const p of patterns) {
+    if (p.re.test(text)) return p.fmt
+  }
+  return null
+}
+
+function autoDownload(content, fmt) {
+  generateFile(content, fmt)
+  showToast(`Downloaded as .${fmt}`, 'success')
+}
+
+// ─── RENDER MESSAGES ──────────────────────────────────────────────────────────
+function appendUserMessage(text, animate = true, files = []) {
+  const container = document.getElementById('messagesContainer')
+  const group = document.createElement('div')
+  group.className = 'msg-group'
+
+  const filesHtml = (files || []).map(f => `
+    <div class="file-preview">
+      <svg class="file-preview-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <div class="file-preview-info">
+        <div class="file-preview-name">${escapeHtml(f.name)}</div>
+        <div class="file-preview-size">${formatSize(f.size)}</div>
+      </div>
+    </div>
+  `).join('')
+
+  group.innerHTML = `
+    <div class="message user" style="${animate ? '' : 'animation:none'}">
+      <div class="msg-avatar user-av">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="msg-body">
+        ${filesHtml}
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+        <div class="msg-time">${getTime()}</div>
+      </div>
+    </div>
+  `
+  container.appendChild(group)
+}
+
+function appendAiMessage(text, think, animate = true) {
+  const container = document.getElementById('messagesContainer')
+  const group = document.createElement('div')
+  group.className = 'msg-group'
+
+  const thinkHtml = think ? `
+    <div class="thinking-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--blue-400)">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <details><summary>Thinking</summary><p style="margin-top:6px;white-space:pre-wrap">${escapeHtml(think)}</p></details>
+    </div>
+  ` : ''
+
+  const rendered = marked.parse ? marked.parse(text) : text
+
+  group.innerHTML = `
+    <div class="message ai" style="${animate ? '' : 'animation:none'}">
+      <div class="msg-avatar ai">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+      </div>
+      <div class="msg-body">
+        ${thinkHtml}
+        <div class="msg-bubble">${rendered}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="msg-time">${getTime()}</div>
+          <div class="msg-actions">
+            <button class="msg-action-btn" onclick="copyText(this, \`${text.replace(/`/g, '\\`')}\`)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              Copy
+            </button>
+            <button class="msg-action-btn" onclick="downloadResponse(\`${text.replace(/`/g, '\\`')}\`)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  container.appendChild(group)
+}
+
+// ─── DOWNLOAD / GENERATE FILE ─────────────────────────────────────────────────
+let pendingDownloadContent = ''
+let pendingDownloadContext = ''
+
+function downloadResponse(content) {
+  pendingDownloadContent = content
+  selectedDownloadFmt = 'txt'
+  document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'))
+  document.querySelector('[data-fmt="txt"]').classList.add('selected')
+  document.getElementById('downloadModal').classList.add('open')
+}
+
+function downloadChat() {
+  const fullText = chatHistory
+    .map(m => `[${m.role.toUpperCase()}]: ${m.content}`)
+    .join('\n\n')
+  pendingDownloadContent = fullText
+  document.getElementById('downloadModal').classList.add('open')
+}
+
+function selectFormat(el, fmt) {
+  document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'))
+  el.classList.add('selected')
+  selectedDownloadFmt = fmt
+}
+
+function confirmDownload() {
+  generateFile(pendingDownloadContent, selectedDownloadFmt)
+  closeModal()
+  showToast(`Downloaded as .${selectedDownloadFmt}`, 'success')
+}
+
+function generateFile(content, fmt) {
+  const now = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+  let blob, filename
+
+  if (fmt === 'txt') {
+    blob = new Blob([content], { type: 'text/plain' })
+    filename = `kry-ai-${now}.txt`
+  } else if (fmt === 'md') {
+    blob = new Blob([`# KRY AI Response\n\n${content}`], { type: 'text/markdown' })
+    filename = `kry-ai-${now}.md`
+  } else if (fmt === 'json') {
+    blob = new Blob([JSON.stringify({ source: 'KRY AI', content, timestamp: now }, null, 2)], { type: 'application/json' })
+    filename = `kry-ai-${now}.json`
+  } else if (fmt === 'html') {
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>KRY AI</title><style>body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7}</style></head><body><h1>KRY AI Response</h1><hr>${marked.parse(content)}</body></html>`
+    blob = new Blob([html], { type: 'text/html' })
+    filename = `kry-ai-${now}.html`
+  } else if (fmt === 'csv') {
+    const rows = [['Role','Content'], ...chatHistory.map(m => [m.role, `"${m.content.replace(/"/g, '""')}"`])]
+    blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' })
+    filename = `kry-ai-${now}.csv`
+  } else if (fmt === 'pdf-text') {
+    blob = new Blob([content], { type: 'text/plain' })
+    filename = `kry-ai-${now}.txt`
+    showToast('PDF export: saved as .txt (no PDF lib in browser)', 'success')
+  }
+
+  downloadBlob(blob, filename)
+}
+
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function closeModal() {
+  document.getElementById('downloadModal').classList.remove('open')
+}
+
+// ─── WEB SEARCH ───────────────────────────────────────────────────────────────
+function toggleWebSearch() {
+  webSearchEnabled = !webSearchEnabled
+  document.getElementById('webSearchToggle').classList.toggle('active', webSearchEnabled)
+  showToast(webSearchEnabled ? 'Web search enabled' : 'Web search off', 'success')
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function showTyping(show) {
+  document.getElementById('typingIndicator').style.display = show ? 'flex' : 'none'
+  if (show) scrollToBottom()
+}
+
+function scrollToBottom(instant = false) {
+  const el = document.getElementById('chatArea')
+  el.scrollTo({ top: el.scrollHeight, behavior: instant ? 'auto' : 'smooth' })
+}
+
+function autoResize(el) {
+  el.style.height = 'auto'
+  el.style.height = Math.min(el.scrollHeight, 200) + 'px'
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    sendMessage()
+  }
+}
+
+function useSuggestion(text) {
+  document.getElementById('messageInput').value = text
+  sendMessage()
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatSize(bytes) {
+  if (!bytes) return ''
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / 1048576).toFixed(1) + ' MB'
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`
+    }, 1800)
+  })
+}
+
+function showToast(msg, type = '') {
+  const container = document.getElementById('toastContainer')
+  const toast = document.createElement('div')
+  toast.className = `toast ${type}`
+  toast.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      ${type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'}
+    </svg>
+    ${msg}
+  `
+  container.appendChild(toast)
+  setTimeout(() => toast.remove(), 3000)
+}
+
+// Close modal on overlay click
+document.getElementById('downloadModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal()
+})
+
+// Init
+newChat()
+</script>
+</body>
+</html>
