@@ -150,13 +150,29 @@ async function blackboxChat(prompt, options = {}) {
   }
 }
 
+const { createClient } = require('@supabase/supabase-js')
+
+async function verifyToken(req) {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    if (!token) return null
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
+    const { data: { user } } = await supabase.auth.getUser(token)
+    return user || null
+  } catch { return null }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
   if (req.method === "OPTIONS") return res.status(200).end()
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" })
+
+  // Auth check — require login
+  const user = await verifyToken(req)
+  if (!user) return res.status(401).json({ ok: false, error: "Please login to use KRY AI" })
 
   try {
     const { prompt, history, webSearch, fileContent, fileName } = req.body
