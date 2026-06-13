@@ -150,33 +150,13 @@ async function blackboxChat(prompt, options = {}) {
   }
 }
 
-async function verifyToken(req) {
-  try {
-    const token = (req.headers.authorization || '').replace('Bearer ', '').trim()
-    if (!token) return null
-    const url = process.env.SUPABASE_URL
-    const key = process.env.SUPABASE_SERVICE_KEY
-    if (!url || !key) return null
-    const r = await fetch(`${url}/auth/v1/user`, {
-      headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
-    })
-    if (!r.ok) return null
-    const u = await r.json()
-    return u?.id ? u : null
-  } catch { return null }
-}
-
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
 
   if (req.method === "OPTIONS") return res.status(200).end()
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" })
-
-  // Auth check — require login
-  const user = await verifyToken(req)
-  if (!user) return res.status(401).json({ ok: false, error: "Please login to use KRY AI" })
 
   try {
     const { prompt, history, webSearch, fileContent, fileName } = req.body
