@@ -132,139 +132,120 @@ async function blackboxChat(prompt, options = {}) {
   }
 }
 
-// ── GEMINI ────────────────────────────────────────────────────────────────────
-const GEM_HOME = "https://gemini.google.com/app"
-const GEM_EP   = "https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate"
+// ── GEMINI ────────────────────────────────────────────────────────────────────.parse(s) } catch { continue }
+    const crypto = require("crypto");
 
-// Per-process Gemini session (reused across requests on same server instance)
-let gemCtx = null
-let gemResume = ["", "", ""]
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0";
+const HOME = "https://gemini.google.com/app";
+const ENDPOINT = "https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate";
 
-function gemHex(n) {
-  let s = ""
-  for (let i = 0; i < n * 2; i++) s += "0123456789abcdef"[Math.floor(Math.random() * 16)]
-  return s
-}
+const hex = n => crypto.randomBytes(n).toString("hex");
+const uuid = () => crypto.randomUUID().toUpperCase();
+const reqid = () => Math.floor(Math.random() * 900000) + 100000;
 
-function gemUuid() {
-  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
-    (c ^ (Math.random() * 16 >> c / 4)).toString(16)).toUpperCase()
-}
-
-function gemReqid() { return Math.floor(Math.random() * 900000) + 100000 }
+let gemCtx = null;
+let gemResume = ["", "", ""];
 
 async function gemBootstrap() {
-  const res = await fetch(GEM_HOME, {
-    headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" }
-  })
-  const setc = res.headers.getSetCookie ? res.headers.getSetCookie() : []
-  const cookie = setc.map(c => c.split(";")[0]).join("; ")
-  const html = await res.text()
-  gemCtx = {
-    cookie,
-    bl: ((html.match(/"cfb2h":"(.*?)"/) || [, ""])[1]) || "",
-    fsid: ((html.match(/"FdrFJe":"(.*?)"/) || [, ""])[1]) || "",
-    uid: gemUuid()
-  }
+    const res = await fetch(HOME, { headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" } });
+    const setc = res.headers.getSetCookie ? res.headers.getSetCookie() : [];
+    const cookie = setc.map(c => c.split(";")[0]).join("; ");
+    const html = await res.text();
+    gemCtx = {
+        cookie,
+        bl: (html.match(/"cfb2h":"(.*?)"/) || [])[1] || "",
+        fsid: (html.match(/"FdrFJe":"(.*?)"/) || [])[1] || "",
+        uid: uuid()
+    };
 }
 
 function gemBuildBody(message, resume, uid) {
-  const inner = [
-    [message, 0, null, null, null, null, 0],
-    ["en-US"],
-    resume, "", gemHex(16), null, [1], 1, null, null, 1, 0,
-    null, null, null, null, null, [[0]], 0, null, null, null, null,
-    null, null, null, null, 1, null, null, [4], null, null, null,
-    null, null, null, null, null, null, null, [2], null, null, null,
-    null, null, null, null, null, null, null, null, 0, null, null,
-    null, null, null, uid, null, [], null, null, null, null, null,
-    null, 2, null, null, null, null, null, null, null, null, null,
-    null, 1
-  ]
-  return "f.req=" + encodeURIComponent(JSON.stringify([null, JSON.stringify(inner)])) + "&"
+    const inner = [
+        [message, 0, null, null, null, null, 0],
+        ["en-US"],
+        resume, "", hex(16), null, [1], 1, null, null, 1, 0,
+        null, null, null, null, null, [[0]], 0, null, null, null, null,
+        null, null, null, null, 1, null, null, [4], null, null, null,
+        null, null, null, null, null, null, null, [2], null, null, null,
+        null, null, null, null, null, null, null, null, 0, null, null,
+        null, null, null, uid, null, [], null, null, null, null, null,
+        null, 2, null, null, null, null, null, null, null, null, null, null, 1
+    ];
+    return "f.req=" + encodeURIComponent(JSON.stringify([null, JSON.stringify(inner)])) + "&";
 }
 
 function gemParseReply(raw) {
-  let best = "", cid = null, rid = null, rpid = null
-  for (const line of (raw || "").split("\n")) {
-    const s = line.trim()
-    if (!s.startsWith('[["wrb.fr"')) continue
-    let outer; try { outer = JSON.parse(s) } catch { continue }
-    for (const row of outer) {
-      if (!Array.isArray(row) || row[0] !== "wrb.fr" || typeof row[2] !== "string") continue
-      let body; try { body = JSON.parse(row[2]) } catch { continue }
-      const ids = body[1]
-      if (Array.isArray(ids)) {
-        if (typeof ids[0] === "string" && ids[0].startsWith("c_")) cid = ids[0]
-        if (typeof ids[1] === "string" && ids[1].startsWith("r_")) rid = ids[1]
-      }
-      const seg = Array.isArray(body[4]) ? body[4][0] : null
-      if (seg) {
-        if (seg[0]) rpid = seg[0]
-        if (Array.isArray(seg[1])) {
-          const p = seg[1].join("")
-          if (p.length > best.length) best = p
+    let best = "", cid = null, rid = null, rpid = null;
+    for (const line of (raw || "").split("\n")) {
+        const s = line.trim();
+        if (!s.startsWith('[["wrb.fr"')) continue;
+        let outer;
+        try { outer = JSON.parse(s); } catch { continue; }
+        for (const row of outer) {
+            if (!Array.isArray(row) || row[0] !== "wrb.fr" || typeof row[2] !== "string") continue;
+            let body;
+            try { body = JSON.parse(row[2]); } catch { continue; }
+            const ids = body[1];
+            if (Array.isArray(ids)) {
+                if (typeof ids[0] === "string" && ids[0].startsWith("c_")) cid = ids[0];
+                if (typeof ids[1] === "string" && ids[1].startsWith("r_")) rid = ids[1];
+            }
+            const seg = Array.isArray(body[4]) ? body[4][0] : null;
+            if (seg) {
+                if (seg[0]) rpid = seg[0];
+                if (Array.isArray(seg[1])) {
+                    const p = seg[1].join("");
+                    if (p.length > best.length) best = p;
+                }
+            }
         }
-      }
     }
-  }
-  return { text: best.trim(), cid, rid, rpid }
+    return { text: best.trim(), cid, rid, rpid };
 }
 
-async function geminiChat(prompt, options = {}) {
-  // Bootstrap if no context yet, or if caller requests fresh session
-  if (!gemCtx || options.freshSession) await gemBootstrap()
+async function geminiChat(prompt) {
+    if (!gemCtx) await gemBootstrap();
 
-  // Use provided resume or server-side state
-  const resume = options.resume && options.resume[0]
-    ? [...options.resume.slice(0, 3), null, null, null, null, null, null, ""]
-    : (gemResume[0]
+    const resume = gemResume[0]
         ? [gemResume[0], gemResume[1], gemResume[2], null, null, null, null, null, null, ""]
-        : ["", "", "", null, null, null, null, null, null, ""])
+        : ["", "", "", null, null, null, null, null, null, ""];
 
-  const url = `${GEM_EP}?bl=${encodeURIComponent(gemCtx.bl)}&f.sid=${encodeURIComponent(gemCtx.fsid)}&hl=en-US&_reqid=${gemReqid()}&rt=c`
+    const url = `${ENDPOINT}?bl=${encodeURIComponent(gemCtx.bl)}&f.sid=${encodeURIComponent(gemCtx.fsid)}&hl=en-US&_reqid=${reqid()}&rt=c`;
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
-      "user-agent": UA,
-      "origin": "https://gemini.google.com",
-      "referer": "https://gemini.google.com/",
-      "x-same-domain": "1",
-      "x-goog-ext-525001261-jspb": JSON.stringify([1, null, null, null, gemHex(8), null, null, 0, [4, 6], null, null, 1, null, null, 1, null, gemUuid()]),
-      "x-goog-ext-525005358-jspb": JSON.stringify([gemCtx.uid, 1]),
-      "x-goog-ext-73010990-jspb": "[0,0,0]",
-      "x-goog-ext-73010989-jspb": "[0]",
-      "cookie": gemCtx.cookie
-    },
-    body: gemBuildBody(String(prompt), resume, gemCtx.uid)
-  })
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {
+            "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+            "user-agent": UA,
+            "origin": "https://gemini.google.com",
+            "referer": "https://gemini.google.com/",
+            "x-same-domain": "1",
+            "x-goog-ext-525001261-jspb": JSON.stringify([1, null, null, null, hex(8), null, null, 0, [4, 6], null, null, 1, null, null, 1, null, uuid()]),
+            "x-goog-ext-525005358-jspb": JSON.stringify([gemCtx.uid, 1]),
+            "x-goog-ext-73010990-jspb": "[0,0,0]",
+            "x-goog-ext-73010989-jspb": "[0]",
+            cookie: gemCtx.cookie
+        },
+        body: gemBuildBody(String(prompt), resume, gemCtx.uid)
+    });
 
-  const raw = await res.text()
-  const reply = gemParseReply(raw)
+    const raw = await res.text();
 
-  if (!reply.text) throw new Error("Gemini tidak merespons. Coba lagi.")
+    if (raw.includes("login") || raw.includes("auth")) {
+        gemCtx = null;
+        throw new Error("Session expired, retry");
+    }
 
-  // Update server-side resume for next call
-  if (reply.cid) gemResume = [reply.cid, reply.rid || "", reply.rpid || ""]
+    const reply = gemParseReply(raw);
 
-  // Parse artifact blocks from Gemini response (same format as Blackbox)
-  const artifacts = []
-  const cleanText = reply.text.replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g, (_, filename, content) => {
-    artifacts.push({ filename: filename.trim(), content: content.trim() })
-    return `[[ARTIFACT_${artifacts.length - 1}]]`
-  })
+    if (!reply.text) throw new Error("Empty response");
 
-  return {
-    ok: true,
-    text: cleanText.trim(),
-    think: null,
-    artifacts,
-    resume: [reply.cid || "", reply.rid || "", reply.rpid || ""],
-    history: [] // Gemini is stateful server-side via gemResume, no need to replay history
-  }
+    if (reply.cid) gemResume = [reply.cid, reply.rid || "", reply.rpid || ""];
+
+    return { ok: true, text: reply.text };
 }
+
+module.exports = { geminiChat };
 
 // ── HANDLER ───────────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
