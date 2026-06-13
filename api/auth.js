@@ -1,10 +1,46 @@
-const { createClient } = require('@supabase/supabase-js')
+// Auth handler — uses Supabase REST API directly (no npm needed)
 
-function getSupabase() {
+function supabase() {
   const url = process.env.SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_KEY
-  if (!url || !key) throw new Error('Supabase env vars missing')
-  return createClient(url, key)
+  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY')
+  return { url, key }
+}
+
+async function sbFetch(path, opts = {}) {
+  const { url, key } = supabase()
+  const res = await fetch(`${url}${path}`, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      ...(opts.headers || {})
+    }
+  })
+  const text = await res.text()
+  try { return { status: res.status, data: JSON.parse(text) }
+  } catch { return { status: res.status, data: { error: text } } }
+}
+
+async function getUser(token) {
+  const { url, key } = supabase()
+  const res = await fetch(`${url}/auth/v1/user`, {
+    headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
+  })
+  if (!res.ok) return null
+  const u = await res.json()
+  return u?.id ? u : null
+}
+
+function formatUser(u) {
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.user_metadata?.full_name || u.user_metadata?.name || u.user_metadata?.user_name || u.email?.split('@')[0],
+    avatar: u.user_metadata?.avatar_url || u.user_metadata?.picture || null,
+    provider: u.app_metadata?.provider || 'email'
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -13,95 +49,116 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  const url = new URL(req.url, `https://${req.headers.host}`)
-  const path = url.pathname.replace('/api/auth', '') || '/'
+  // Always return JSON
+  res.setHeader('Content-Type', 'application/json')
+
+  let path = '/'
+  try {
+    const u = new URL(req.url, `https://${req.headers.host}`)
+    path = u.pathname.replace(/^\/api\/auth/, '') || '/'
+  } catch {}
 
   try {
-    const supabase = getSupabase()
+    const { url, key } = supabase()
 
-    // GET /api/auth/me — verify session token & return user
+    // GET /api/auth/me
     if (req.method === 'GET' && path === '/me') {
-      const token = req.headers.authorization?.replace('Bearer ', '')
+      const token = (req.headers.authorization || '').replace('Bearer ', '').trim()
       if (!token) return res.status(401).json({ error: 'No token' })
-      const { data: { user }, error } = await supabase.auth.getUser(token)
-      if (error || !user) return res.status(401).json({ error: 'Invalid token' })
-      return res.status(200).json({
-        id: user.id,
-        email: user.email,
-        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
-        avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-        provider: user.app_metadata?.provider || 'email'
-      })
+      const u = await getUser(token)
+      if (!u) return res.status(401).json({ error: 'Invalid token' })
+      return res.status(200).json(formatUser(u))
     }
 
-    // POST /api/auth/login — email+password login
+    // POST /api/auth/login
     if (req.method === 'POST' && path === '/login') {
-      const { email, password } = req.body
+      const { email, password } = req.body || {}
       if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) return res.status(401).json({ error: error.message })
-      return res.status(200).json({
-        token: data.session.access_token,
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0],
-          avatar: data.user.user_metadata?.avatar_url || null,
-          provider: 'email'
-        }
+      const r = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': key },
+        body: JSON.stringify({ email, password })
       })
+      const d = await r.json()
+      if (!r.ok || !d.access_token) return res.status(401).json({ error: d.error_description || d.msg || 'Login failed' })
+      return res.status(200).json({ token: d.access_token, user: formatUser(d.user) })
     }
 
-    // POST /api/auth/register — email+password register
+    // POST /api/auth/register
     if (req.method === 'POST' && path === '/register') {
-      const { email, password, name } = req.body
+      const { email, password, name } = req.body || {}
       if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
-      const { data, error } = await supabase.auth.signUp({
-        email, password,
-        options: { data: { full_name: name || email.split('@')[0] } }
+      const r = await fetch(`${url}/auth/v1/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': key },
+        body: JSON.stringify({ email, password, data: { full_name: name || email.split('@')[0] } })
       })
-      if (error) return res.status(400).json({ error: error.message })
-      if (!data.session) return res.status(200).json({ message: 'Check your email to confirm registration' })
-      return res.status(200).json({
-        token: data.session.access_token,
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.user_metadata?.full_name || email.split('@')[0],
-          avatar: null,
-          provider: 'email'
-        }
-      })
+      const d = await r.json()
+      if (!r.ok) return res.status(400).json({ error: d.error_description || d.msg || 'Registration failed' })
+      if (d.access_token) {
+        return res.status(200).json({ token: d.access_token, user: formatUser(d.user) })
+      }
+      return res.status(200).json({ message: 'Check your email to confirm registration' })
     }
 
-    // GET /api/auth/oauth?provider=google|github — get OAuth URL
+    // GET /api/auth/oauth?provider=google|github
     if (req.method === 'GET' && path === '/oauth') {
-      const provider = url.searchParams.get('provider')
+      const u2 = new URL(req.url, `https://${req.headers.host}`)
+      const provider = u2.searchParams.get('provider')
       if (!['google', 'github'].includes(provider)) return res.status(400).json({ error: 'Invalid provider' })
-      const redirectTo = `${process.env.SITE_URL || `https://${req.headers.host}`}/api/auth/callback`
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo }
-      })
-      if (error) return res.status(500).json({ error: error.message })
-      return res.status(200).json({ url: data.url })
+      const siteUrl = process.env.SITE_URL || `https://${req.headers.host}`
+      const redirectTo = `${siteUrl}/api/auth/callback`
+      const oauthUrl = `${url}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo)}`
+      return res.status(200).json({ url: oauthUrl })
     }
 
-    // GET /api/auth/callback — OAuth callback, exchange code for session
+    // GET /api/auth/callback — exchange code
     if (req.method === 'GET' && path === '/callback') {
-      const code = url.searchParams.get('code')
-      if (!code) return res.redirect(302, '/login?error=no_code')
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-      if (error) return res.redirect(302, `/login?error=${encodeURIComponent(error.message)}`)
-      const token = data.session.access_token
-      // Redirect to chat with token in hash (never in query string)
-      return res.redirect(302, `/chat#token=${token}`)
+      const u2 = new URL(req.url, `https://${req.headers.host}`)
+      const code = u2.searchParams.get('code')
+      const siteUrl = process.env.SITE_URL || `https://${req.headers.host}`
+
+      if (!code) {
+        res.setHeader('Location', `${siteUrl}/login?error=no_code`)
+        return res.status(302).end()
+      }
+
+      const r = await fetch(`${url}/auth/v1/token?grant_type=pkce`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': key },
+        body: JSON.stringify({ auth_code: code })
+      })
+      const d = await r.json()
+
+      if (!r.ok || !d.access_token) {
+        // Try alternative exchange
+        const r2 = await fetch(`${url}/auth/v1/token?grant_type=authorization_code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': key },
+          body: JSON.stringify({ code })
+        })
+        const d2 = await r2.json()
+        if (!r2.ok || !d2.access_token) {
+          res.setHeader('Location', `${siteUrl}/login?error=${encodeURIComponent(d2.error_description || 'OAuth failed')}`)
+          return res.status(302).end()
+        }
+        res.setHeader('Location', `${siteUrl}/chat#token=${d2.access_token}`)
+        return res.status(302).end()
+      }
+
+      res.setHeader('Location', `${siteUrl}/chat#token=${d.access_token}`)
+      return res.status(302).end()
     }
 
     // POST /api/auth/logout
     if (req.method === 'POST' && path === '/logout') {
-      const token = req.headers.authorization?.replace('Bearer ', '')
-      if (token) await supabase.auth.admin.signOut(token).catch(() => {})
+      const token = (req.headers.authorization || '').replace('Bearer ', '').trim()
+      if (token) {
+        await fetch(`${url}/auth/v1/logout`, {
+          method: 'POST',
+          headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
+        }).catch(() => {})
+      }
       return res.status(200).json({ ok: true })
     }
 
