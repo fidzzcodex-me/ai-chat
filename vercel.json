@@ -4,16 +4,10 @@
     "api/auth.js": { "memory": 256, "maxDuration": 10 },
     "api/user.js": { "memory": 256, "maxDuration": 10 }
   },
-  "routes": [
-    { "src": "/api/chat", "dest": "/api/chat.js" },
-    { "src": "/api/auth/(.*)", "dest": "/api/auth.js" },
-    { "src": "/api/user", "dest": "/api/user.js" },
-    { "src": "/chat", "dest": "/public/chat.html" },
-    { "src": "/login", "dest": "/public/login.html" },
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/(.*)\\.html", "dest": "/public/$1.html" },
-    { "src": "/(.*)\\.js", "dest": "/public/$1.js" },
-    { "src": "/(.*)\\.css", "dest": "/public/$1.css" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/api/auth/(.*)", "destination": "/api/auth.js" },
+    { "source": "/api/user", "destination": "/api/user.js" }
   ]
 }
