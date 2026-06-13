@@ -10,8 +10,11 @@
     { "source": "/api/chat", "destination": "/api/chat.js" },
     { "source": "/api/auth/:path*", "destination": "/api/auth.js" },
     { "source": "/api/user", "destination": "/api/user.js" },
+
     { "source": "/login", "destination": "/public/login.html" },
     { "source": "/chat", "destination": "/public/chat.html" },
+    { "source": "/chat/:path*", "destination": "/public/chat.html" },
+    { "source": "/", "destination": "/public/index.html" },
     { "source": "/:path*", "destination": "/public/index.html" }
   ]
 }
