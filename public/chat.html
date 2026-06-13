@@ -936,11 +936,33 @@ let authToken = null
 let currentUser = null
 
 async function initAuth() {
-  // Check hash for OAuth token
   const hash = new URLSearchParams(window.location.hash.replace('#',''))
+
+  // Handle token in hash (standard OAuth flow)
   if (hash.get('token')) {
     localStorage.setItem('kry_token', hash.get('token'))
     window.history.replaceState(null, '', '/chat')
+  }
+
+  // Handle code in hash (fallback when PKCE fails server-side)
+  if (hash.get('code')) {
+    const code = hash.get('code')
+    window.history.replaceState(null, '', '/chat')
+    try {
+      const res = await fetch(`/api/auth/callback?code=${code}`)
+      const text = await res.text()
+      // If it redirected us with a token we need to parse from Location header
+      // Just try to exchange via supabase client-side
+      const supabaseUrl = 'https://ytebgtspjdlkhndjauxa.supabase.co'
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0ZWJndHNwamRsa2huZGphdXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyODE2MDgsImV4cCI6MjA5Njg1NzYwOH0.8Mgv4tCbQLzWJSgkGIX0XekMUwCY3oJxAEvw_Rx52gY'
+      const r2 = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=pkce`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': anonKey },
+        body: JSON.stringify({ auth_code: code })
+      })
+      const d2 = await r2.json().catch(() => null)
+      if (d2?.access_token) localStorage.setItem('kry_token', d2.access_token)
+    } catch {}
   }
 
   authToken = localStorage.getItem('kry_token')
@@ -948,13 +970,19 @@ async function initAuth() {
 
   try {
     const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${authToken}` } })
-    if (!res.ok) { localStorage.removeItem('kry_token'); window.location.href = '/login'; return }
-    currentUser = await res.json()
+    const text = await res.text()
+    let data
+    try { data = JSON.parse(text) } catch { data = null }
+    if (!res.ok || !data?.id) {
+      localStorage.removeItem('kry_token')
+      window.location.href = '/login'
+      return
+    }
+    currentUser = data
     renderUser(currentUser)
   } catch {
-    // Allow offline use with cached user
     const cached = localStorage.getItem('kry_user')
-    if (cached) { currentUser = JSON.parse(cached); renderUser(currentUser) }
+    if (cached) { try { currentUser = JSON.parse(cached); renderUser(currentUser) } catch { window.location.href = '/login' } }
     else { window.location.href = '/login' }
   }
 }
