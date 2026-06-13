@@ -1,127 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Sign in — KRY AI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"/>
   <style>
-    :root{--b7:#1d4ed8;--b6:#2563eb;--b5:#3b82f6;--b4:#60a5fa;--b2:#bfdbfe;--b1:#dbeafe;--b0:#eff6ff;--g8:#1e293b;--g7:#334155;--g6:#475569;--g5:#64748b;--g4:#94a3b8;--g3:#cbd5e1;--g2:#e2e8f0;--g1:#f1f5f9;--g0:#f8fafc;--w:#fff;--r:12px;--rs:8px;--tr:.2s cubic-bezier(.4,0,.2,1);--red:#ef4444;--red0:#fef2f2}
+    :root{
+      --b7:#1d4ed8;--b6:#2563eb;--b5:#3b82f6;--b4:#60a5fa;
+      --b2:#bfdbfe;--b1:#dbeafe;--b0:#eff6ff;
+      --g8:#1e293b;--g7:#334155;--g6:#475569;--g5:#64748b;
+      --g4:#94a3b8;--g3:#cbd5e1;--g2:#e2e8f0;--g1:#f1f5f9;--g0:#f8fafc;
+      --w:#fff;--r:12px;--rs:8px;--tr:.2s cubic-bezier(.4,0,.2,1);
+      --red:#ef4444;--red0:#fef2f2
+    }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{font-size:15px}
     body{font-family:'Inter',sans-serif;background:var(--g0);color:var(--g8);min-height:100vh;display:flex;flex-direction:column;line-height:1.5}
 
+    /* BG */
+    .bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .glow{position:absolute;border-radius:50%;filter:blur(80px)}
+    .glow-1{width:400px;height:400px;top:-120px;left:-100px;background:rgba(37,99,235,.1);animation:gf 11s ease-in-out infinite}
+    .glow-2{width:350px;height:350px;bottom:-100px;right:-80px;background:rgba(96,165,250,.08);animation:gf 14s ease-in-out infinite reverse}
+    @keyframes gf{0%,100%{transform:translate(0,0)}50%{transform:translate(18px,13px)}}
+    .particle{position:absolute;border-radius:50%;background:#93c5fd;opacity:0;animation:pf linear infinite}
+    @keyframes pf{0%{transform:translateY(100vh);opacity:0}5%{opacity:.25}90%{opacity:.08}100%{transform:translateY(-5vh);opacity:0}}
+
     /* LAYOUT */
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
-    .page::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(37,99,235,.06) 0%,transparent 70%);pointer-events:none}
-    .card{width:100%;max-width:400px;background:var(--w);border:1px solid var(--g2);border-radius:18px;padding:32px;box-shadow:0 8px 40px rgba(37,99,235,.08);position:relative;z-index:1}
+    .page{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{width:100%;max-width:400px;background:var(--w);border:1px solid var(--g2);border-radius:18px;padding:32px;box-shadow:0 8px 40px rgba(37,99,235,.08)}
 
     /* LOGO */
-    .logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
-    .logo-mark{width:44px;height:44px;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-weight:700;font-size:.9rem;color:#fff;letter-spacing:-.5px;margin-bottom:10px;box-shadow:0 4px 14px rgba(37,99,235,.25)}
+    .logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:26px}
+    .logo-mark{width:44px;height:44px;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-weight:700;font-size:.9rem;color:#fff;margin-bottom:10px;box-shadow:0 4px 14px rgba(37,99,235,.25)}
     .logo-name{font-family:'Sora',sans-serif;font-weight:700;font-size:1.15rem;background:linear-gradient(135deg,var(--b6),var(--b5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .logo-sub{font-size:.78rem;color:var(--g5);margin-top:3px}
 
     /* TABS */
-    .tabs{display:flex;background:var(--g1);border-radius:var(--rs);padding:3px;margin-bottom:24px;gap:3px}
+    .tabs{display:flex;background:var(--g1);border-radius:var(--rs);padding:3px;margin-bottom:22px;gap:3px}
     .tab{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:.82rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;color:var(--g5);transition:all var(--tr)}
     .tab.active{background:var(--w);color:var(--g8);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
-    /* OAUTH BUTTONS */
-    .oauth-btns{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
-    .oauth-btn{width:100%;padding:10px 16px;border:1.5px solid var(--g2);background:var(--w);border-radius:var(--rs);font-size:.85rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all var(--tr);color:var(--g7)}
+    /* OAUTH */
+    .oauth-btns{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+    .oauth-btn{width:100%;padding:10px 16px;border:1.5px solid var(--g2);background:var(--w);border-radius:var(--rs);font-size:.84rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all var(--tr);color:var(--g7)}
     .oauth-btn:hover{border-color:var(--b4);background:var(--b0);color:var(--g8)}
     .oauth-btn:disabled{opacity:.6;cursor:not-allowed}
     .oauth-icon{width:18px;height:18px;flex-shrink:0}
 
     /* DIVIDER */
-    .divider{display:flex;align-items:center;gap:10px;margin-bottom:20px;color:var(--g4);font-size:.75rem;font-weight:500}
+    .divider{display:flex;align-items:center;gap:10px;margin-bottom:18px;color:var(--g4);font-size:.75rem;font-weight:500}
     .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--g2)}
 
     /* FORM */
-    .form-group{margin-bottom:14px}
+    .fg{margin-bottom:13px}
     label{display:block;font-size:.78rem;font-weight:600;color:var(--g7);margin-bottom:5px}
     input{width:100%;padding:9px 12px;border:1.5px solid var(--g2);border-radius:var(--rs);font-size:.875rem;font-family:'Inter',sans-serif;color:var(--g8);background:var(--w);outline:none;transition:all var(--tr)}
     input:focus{border-color:var(--b4);box-shadow:0 0 0 3px rgba(96,165,250,.12)}
-    input.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
     input::placeholder{color:var(--g4)}
-    .input-hint{font-size:.71rem;color:var(--g5);margin-top:4px}
+    .hint{font-size:.71rem;color:var(--g5);margin-top:4px}
 
-    /* SUBMIT BTN */
+    /* SUBMIT */
     .submit-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--b6),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-size:.875rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all var(--tr);box-shadow:0 2px 10px rgba(37,99,235,.22);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:7px}
     .submit-btn:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-1px)}
     .submit-btn:disabled{opacity:.7;cursor:not-allowed;transform:none}
 
-    /* SPINNER */
-    .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+    .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ERROR / SUCCESS */
-    .alert{padding:10px 13px;border-radius:var(--rs);font-size:.79rem;font-weight:500;margin-bottom:14px;display:none;align-items:flex-start;gap:7px;line-height:1.45}
+    /* ALERTS */
+    .alert{padding:10px 13px;border-radius:var(--rs);font-size:.79rem;font-weight:500;margin-bottom:13px;display:none;align-items:flex-start;gap:7px;line-height:1.45}
     .alert.show{display:flex}
     .alert.err{background:var(--red0);border:1px solid #fca5a5;color:#b91c1c}
     .alert.ok{background:#f0fdf4;border:1px solid #86efac;color:#15803d}
 
-    /* FOOTER */
-    .card-foot{text-align:center;margin-top:20px;font-size:.77rem;color:var(--g5)}
+    .card-foot{text-align:center;margin-top:18px;font-size:.77rem;color:var(--g5)}
     .card-foot a{color:var(--b6);text-decoration:none;font-weight:600}
     .card-foot a:hover{text-decoration:underline}
 
-    .back-home{position:absolute;top:20px;left:24px;display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--g5);font-size:.79rem;font-weight:500;transition:color var(--tr)}
-    .back-home:hover{color:var(--b6)}
-    .back-home svg{flex-shrink:0}
+    .back{position:fixed;top:20px;left:20px;display:flex;align-items:center;gap:5px;text-decoration:none;color:var(--g5);font-size:.78rem;font-weight:500;transition:color var(--tr);z-index:10}
+    .back:hover{color:var(--b6)}
 
-    /* LOADING OVERLAY */
-    .oauth-loading{position:fixed;inset:0;background:rgba(255,255,255,.8);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
-    .oauth-loading.show{display:flex}
-    .oauth-loading-spinner{width:36px;height:36px;border:3px solid var(--b2);border-top-color:var(--b5);border-radius:50%;animation:spin .8s linear infinite}
-    .oauth-loading-text{font-size:.85rem;color:var(--g6);font-weight:500}
-
-    /* VISUAL EFFECTS */
-    .bg-effects{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-    .glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5}
-    .glow-1{width:400px;height:400px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(37,99,235,.12),transparent 70%);animation:gf 10s ease-in-out infinite}
-    .glow-2{width:350px;height:350px;bottom:-80px;right:-80px;background:radial-gradient(circle,rgba(96,165,250,.1),transparent 70%);animation:gf 13s ease-in-out infinite reverse}
-    @keyframes gf{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,15px)}}
-    .particle{position:absolute;border-radius:50%;background:var(--b4);opacity:0;animation:pf linear infinite}
-    @keyframes pf{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.3}90%{opacity:.1}100%{transform:translateY(-10vh) scale(.5);opacity:0}}
+    /* OAUTH LOADING */
+    .ov-load{position:fixed;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+    .ov-load.show{display:flex}
+    .ov-spin{width:36px;height:36px;border:3px solid var(--b2);border-top-color:var(--b5);border-radius:50%;animation:spin .8s linear infinite}
+    .ov-txt{font-size:.85rem;color:var(--g6);font-weight:500}
   </style>
 </head>
 <body>
 
-<div class="bg-effects" id="bgEffects">
+<div class="bg-fx" id="bgFx">
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
 </div>
 
-<div class="oauth-loading" id="oauthLoading">
-  <div class="oauth-loading-spinner"></div>
-  <div class="oauth-loading-text" id="oauthLoadingText">Redirecting...</div>
+<div class="ov-load" id="ovLoad">
+  <div class="ov-spin"></div>
+  <div class="ov-txt" id="ovTxt">Redirecting...</div>
 </div>
 
-<div class="page">
-  <a href="/" class="back-home">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to home
-  </a>
+<a href="/" class="back">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  Back
+</a>
 
-  <div class="card" data-aos="fade-up" data-aos-duration="500">
+<div class="page">
+  <div class="card" data-aos="fade-up" data-aos-offset="0" data-aos-duration="500">
     <div class="logo-wrap">
       <div class="logo-mark">&gt;_</div>
       <div class="logo-name">KRY AI</div>
       <div class="logo-sub">Your intelligent assistant</div>
     </div>
 
-    <!-- TABS -->
     <div class="tabs">
       <button class="tab active" id="tabLogin" onclick="switchTab('login')">Sign in</button>
       <button class="tab" id="tabRegister" onclick="switchTab('register')">Register</button>
     </div>
 
-    <!-- ALERT -->
     <div class="alert err" id="alertErr">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span id="errMsg"></span>
@@ -131,54 +131,44 @@
       <span id="okMsg"></span>
     </div>
 
-    <!-- OAUTH -->
     <div class="oauth-btns">
       <button class="oauth-btn" id="btnGoogle" onclick="oauthLogin('google')">
-        <svg class="oauth-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
+        <svg class="oauth-icon" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         Continue with Google
       </button>
       <button class="oauth-btn" id="btnGithub" onclick="oauthLogin('github')">
-        <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-        </svg>
+        <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
         Continue with GitHub
       </button>
     </div>
 
     <div class="divider">or</div>
 
-    <!-- LOGIN FORM -->
     <div id="loginForm">
-      <div class="form-group">
-        <label for="loginEmail">Email</label>
-        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+      <div class="fg">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/>
       </div>
-      <div class="form-group">
-        <label for="loginPass">Password</label>
-        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()" />
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()"/>
       </div>
       <button class="submit-btn" id="loginBtn" onclick="submitLogin()">Sign in</button>
     </div>
 
-    <!-- REGISTER FORM -->
     <div id="registerForm" style="display:none">
-      <div class="form-group">
-        <label for="regName">Name</label>
-        <input type="text" id="regName" placeholder="Your name" autocomplete="name" />
+      <div class="fg">
+        <label>Name</label>
+        <input type="text" id="regName" placeholder="Your name" autocomplete="name"/>
       </div>
-      <div class="form-group">
-        <label for="regEmail">Email</label>
-        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" />
+      <div class="fg">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email"/>
       </div>
-      <div class="form-group">
-        <label for="regPass">Password</label>
-        <input type="password" id="regPass" placeholder="Min 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()" />
-        <div class="input-hint">Minimum 6 characters</div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="regPass" placeholder="Min 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()"/>
+        <div class="hint">Minimum 6 characters</div>
       </div>
       <button class="submit-btn" id="registerBtn" onclick="submitRegister()">Create account</button>
     </div>
@@ -191,68 +181,86 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
-const API = ''
+AOS.init({ once: true, duration: 500, easing: 'ease-out-cubic', offset: 0 })
 
-// Check if already logged in
-const storedToken = localStorage.getItem('kry_token')
-if (storedToken) {
-  fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${storedToken}` } })
-    .then(r => r.json())
-    .then(u => { if (u.id) window.location.href = '/chat' })
-    .catch(() => {})
+// Particles
+const bg = document.getElementById('bgFx')
+for (let i = 0; i < 12; i++) {
+  const p = document.createElement('div')
+  p.className = 'particle'
+  const s = 2 + Math.random() * 3
+  p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${11+Math.random()*14}s;animation-delay:${Math.random()*11}s`
+  bg.appendChild(p)
 }
 
-// Check for OAuth callback token in hash
-const hash = new URLSearchParams(window.location.hash.replace('#', ''))
+// ── SAFE FETCH — always parse JSON safely ──────────────────────────────────
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  })
+  const text = await res.text()
+  let data
+  try { data = JSON.parse(text) }
+  catch { throw new Error(text.slice(0, 120) || `HTTP ${res.status}`) }
+  if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`)
+  return data
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+// Handle OAuth token in hash
+const hash = new URLSearchParams(window.location.hash.replace('#',''))
 if (hash.get('token')) {
   localStorage.setItem('kry_token', hash.get('token'))
-  window.location.href = '/chat'
+  window.location.replace('/chat')
 }
 
-// Check for error in query
+// If already logged in → redirect
+const tok = localStorage.getItem('kry_token')
+if (tok) {
+  apiFetch('/api/auth/me', { headers: { Authorization: `Bearer ${tok}` } })
+    .then(u => { if (u?.id) window.location.replace('/chat') })
+    .catch(() => localStorage.removeItem('kry_token'))
+}
+
+// Handle error/tab query params
 const qp = new URLSearchParams(window.location.search)
 if (qp.get('error')) showErr(decodeURIComponent(qp.get('error')))
 if (qp.get('tab') === 'register') switchTab('register')
 
+// ── TABS ───────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   clearAlerts()
-  if (tab === 'login') {
-    document.getElementById('tabLogin').classList.add('active')
-    document.getElementById('tabRegister').classList.remove('active')
-    document.getElementById('loginForm').style.display = 'block'
-    document.getElementById('registerForm').style.display = 'none'
-    document.getElementById('cardFoot').innerHTML = `Don't have an account? <a href="#" onclick="switchTab('register');return false">Register</a>`
-  } else {
-    document.getElementById('tabRegister').classList.add('active')
-    document.getElementById('tabLogin').classList.remove('active')
-    document.getElementById('registerForm').style.display = 'block'
-    document.getElementById('loginForm').style.display = 'none'
-    document.getElementById('cardFoot').innerHTML = `Already have an account? <a href="#" onclick="switchTab('login');return false">Sign in</a>`
-  }
+  const isLogin = tab === 'login'
+  document.getElementById('tabLogin').classList.toggle('active', isLogin)
+  document.getElementById('tabRegister').classList.toggle('active', !isLogin)
+  document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none'
+  document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block'
+  document.getElementById('cardFoot').innerHTML = isLogin
+    ? `Don't have an account? <a href="#" onclick="switchTab('register');return false">Register</a>`
+    : `Already have an account? <a href="#" onclick="switchTab('login');return false">Sign in</a>`
 }
 
+// ── OAUTH ──────────────────────────────────────────────────────────────────
 async function oauthLogin(provider) {
   clearAlerts()
   document.getElementById('btnGoogle').disabled = true
   document.getElementById('btnGithub').disabled = true
-  document.getElementById('oauthLoadingText').textContent = `Connecting to ${provider === 'google' ? 'Google' : 'GitHub'}...`
-  document.getElementById('oauthLoading').classList.add('show')
+  document.getElementById('ovTxt').textContent = `Connecting to ${provider === 'google' ? 'Google' : 'GitHub'}...`
+  document.getElementById('ovLoad').classList.add('show')
   try {
-    const res = await fetch(`${API}/api/auth/oauth?provider=${provider}`)
-    const data = await res.json()
-    if (data.url) {
-      window.location.href = data.url
-    } else {
-      throw new Error(data.error || 'OAuth failed')
-    }
+    const data = await apiFetch(`/api/auth/oauth?provider=${provider}`)
+    if (data.url) { window.location.href = data.url; return }
+    throw new Error('No OAuth URL returned')
   } catch (err) {
-    document.getElementById('oauthLoading').classList.remove('show')
+    document.getElementById('ovLoad').classList.remove('show')
     document.getElementById('btnGoogle').disabled = false
     document.getElementById('btnGithub').disabled = false
     showErr(err.message)
   }
 }
 
+// ── LOGIN ──────────────────────────────────────────────────────────────────
 async function submitLogin() {
   clearAlerts()
   const email = document.getElementById('loginEmail').value.trim()
@@ -262,17 +270,14 @@ async function submitLogin() {
   btn.disabled = true
   btn.innerHTML = `<div class="spinner"></div> Signing in...`
   try {
-    const res = await fetch(`${API}/api/auth/login`, {
+    const data = await apiFetch('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: pass })
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Login failed')
     localStorage.setItem('kry_token', data.token)
-    localStorage.setItem('kry_user', JSON.stringify(data.user))
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Welcome back!`
-    setTimeout(() => window.location.href = '/chat', 600)
+    if (data.user) localStorage.setItem('kry_user', JSON.stringify(data.user))
+    btn.innerHTML = '✓ Welcome back!'
+    setTimeout(() => window.location.replace('/chat'), 500)
   } catch (err) {
     btn.disabled = false
     btn.innerHTML = 'Sign in'
@@ -280,6 +285,7 @@ async function submitLogin() {
   }
 }
 
+// ── REGISTER ───────────────────────────────────────────────────────────────
 async function submitRegister() {
   clearAlerts()
   const name = document.getElementById('regName').value.trim()
@@ -291,18 +297,15 @@ async function submitRegister() {
   btn.disabled = true
   btn.innerHTML = `<div class="spinner"></div> Creating account...`
   try {
-    const res = await fetch(`${API}/api/auth/register`, {
+    const data = await apiFetch('/api/auth/register', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: pass, name: name || email.split('@')[0] })
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Registration failed')
     if (data.token) {
       localStorage.setItem('kry_token', data.token)
-      localStorage.setItem('kry_user', JSON.stringify(data.user))
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Account created!`
-      setTimeout(() => window.location.href = '/chat', 600)
+      if (data.user) localStorage.setItem('kry_user', JSON.stringify(data.user))
+      btn.innerHTML = '✓ Account created!'
+      setTimeout(() => window.location.replace('/chat'), 500)
     } else {
       showOk(data.message || 'Check your email to confirm registration')
       btn.innerHTML = 'Create account'
@@ -315,6 +318,7 @@ async function submitRegister() {
   }
 }
 
+// ── HELPERS ────────────────────────────────────────────────────────────────
 function showErr(msg) {
   document.getElementById('errMsg').textContent = msg
   document.getElementById('alertErr').classList.add('show')
@@ -330,17 +334,5 @@ function clearAlerts() {
   document.getElementById('alertOk').classList.remove('show')
 }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-<script>AOS.init({ once: true, easing: 'ease-out-cubic', duration: 500 })
-
-// Particles
-const bg = document.getElementById('bgEffects')
-for (let i = 0; i < 12; i++) {
-  const p = document.createElement('div')
-  p.className = 'particle'
-  const size = 2 + Math.random() * 3
-  p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*10}s`
-  bg.appendChild(p)
-}</script>
 </body>
 </html>
