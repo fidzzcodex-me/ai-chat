@@ -52,6 +52,11 @@ module.exports = async function handler(req, res) {
   // Always return JSON
   res.setHeader('Content-Type', 'application/json')
 
+// Tambahkan di awal handler
+if (req.method === 'GET' && path === '/') {
+  return res.redirect(302, `${process.env.SITE_URL}/login`);
+}
+  
   let path = '/'
   try {
     const u = new URL(req.url, `https://${req.headers.host}`)
