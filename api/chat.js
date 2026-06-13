@@ -150,15 +150,19 @@ async function blackboxChat(prompt, options = {}) {
   }
 }
 
-const { createClient } = require('@supabase/supabase-js')
-
 async function verifyToken(req) {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '')
+    const token = (req.headers.authorization || '').replace('Bearer ', '').trim()
     if (!token) return null
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
-    const { data: { user } } = await supabase.auth.getUser(token)
-    return user || null
+    const url = process.env.SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_KEY
+    if (!url || !key) return null
+    const r = await fetch(`${url}/auth/v1/user`, {
+      headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
+    })
+    if (!r.ok) return null
+    const u = await r.json()
+    return u?.id ? u : null
   } catch { return null }
 }
 
