@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
   <style>
     :root{--b7:#1d4ed8;--b6:#2563eb;--b5:#3b82f6;--b4:#60a5fa;--b2:#bfdbfe;--b1:#dbeafe;--b0:#eff6ff;--g8:#1e293b;--g7:#334155;--g6:#475569;--g5:#64748b;--g4:#94a3b8;--g2:#e2e8f0;--g1:#f1f5f9;--g0:#f8fafc;--w:#fff;--r:12px;--rs:8px;--tr:.2s cubic-bezier(.4,0,.2,1)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -116,10 +117,10 @@
 </nav>
 
 <section class="hero">
-  <div class="badge"><div class="bdot"></div>AI · File Analysis · Web Search</div>
-  <h1>Chat smarter with <span>KRY AI</span></h1>
-  <p>Analisis file & gambar, baca ZIP, generate file, dan search web — semua dalam satu chat.</p>
-  <div class="hbtns">
+  <div class="badge" data-aos="fade-down"><div class="bdot"></div>AI · File Analysis · Web Search</div>
+  <h1 data-aos="fade-up" data-aos-delay="80">Chat smarter with <span>KRY AI</span></h1>
+  <p data-aos="fade-up" data-aos-delay="150">Analisis file & gambar, baca ZIP, generate file, dan search web — semua dalam satu chat.</p>
+  <div class="hbtns" data-aos="fade-up" data-aos-delay="220">
     <a href="/login?tab=register" class="btnp">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       Start for free
@@ -127,7 +128,7 @@
     <a href="/login" class="btns">Sign in</a>
   </div>
 
-  <div class="preview">
+  <div class="preview" data-aos="fade-up" data-aos-delay="300">
     <div class="pcard">
       <div class="ptop">
         <div class="pdots"><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
@@ -217,5 +218,7 @@
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>AOS.init({ once: true, easing: 'ease-out-cubic', duration: 560 })</script>
 </body>
 </html>
