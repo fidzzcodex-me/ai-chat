@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
   <style>
     :root{--b7:#1d4ed8;--b6:#2563eb;--b5:#3b82f6;--b4:#60a5fa;--b2:#bfdbfe;--b1:#dbeafe;--b0:#eff6ff;--g8:#1e293b;--g7:#334155;--g6:#475569;--g5:#64748b;--g4:#94a3b8;--g3:#cbd5e1;--g2:#e2e8f0;--g1:#f1f5f9;--g0:#f8fafc;--w:#fff;--r:12px;--rs:8px;--tr:.2s cubic-bezier(.4,0,.2,1);--red:#ef4444;--red0:#fef2f2}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -93,7 +94,7 @@
     Back to home
   </a>
 
-  <div class="card">
+  <div class="card" data-aos="fade-up" data-aos-duration="500">
     <div class="logo-wrap">
       <div class="logo-mark">&gt;_</div>
       <div class="logo-name">KRY AI</div>
@@ -174,7 +175,9 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
+AOS.init({ once: true, easing: 'ease-out-cubic' })
 const API = ''
 
 // Check if already logged in
