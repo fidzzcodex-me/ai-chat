@@ -250,14 +250,103 @@ async function geminiChat(prompt) {
     return { ok: true, text: cleanText.trim(), artifacts, resume: [reply.cid || "", reply.rid || "", reply.rpid || ""] };
 }
 
+// ── POW ──────────────────────────────────────────────────────────────────────
+const crypto2 = require("crypto");
+
+// Simple PoW: client harus kirim nonce yang hash-nya punya prefix tertentu
+// Server generate challenge, client solve, kirim solution
+const POW_DIFFICULTY = 4; // jumlah leading zeros hex
+const challenges = new Map(); // challenge -> { ts, solved }
+
+// Cleanup expired challenges setiap request
+function cleanChallenges() {
+  const now = Date.now();
+  for (const [k, v] of challenges) {
+    if (now - v.ts > 120000) challenges.delete(k); // 2 menit expired
+  }
+}
+
+function generateChallenge() {
+  const challenge = crypto2.randomBytes(16).toString("hex");
+  challenges.set(challenge, { ts: Date.now(), solved: false });
+  return challenge;
+}
+
+function verifyPoW(challenge, nonce) {
+  const hash = crypto2.createHash("sha256").update(challenge + nonce).digest("hex");
+  return hash.startsWith("0".repeat(POW_DIFFICULTY));
+}
+
+// Fingerprint: hash dari IP + UA + timestamp floor (per 10 menit)
+function getFingerprint(req) {
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
+  const ua = req.headers["user-agent"] || "";
+  const window = Math.floor(Date.now() / 600000); // 10 menit window
+  return crypto2.createHash("sha256").update(`${ip}:${ua}:${window}`).digest("hex").slice(0, 16);
+}
+
+// Rate limit per fingerprint: max 30 req per 10 menit
+const fpCounts = new Map();
+function checkRateLimit(fp) {
+  const now = Date.now();
+  const window = Math.floor(now / 600000);
+  const key = `${fp}:${window}`;
+  const count = fpCounts.get(key) || 0;
+  if (count >= 30) return false;
+  fpCounts.set(key, count + 1);
+  // cleanup old keys
+  if (fpCounts.size > 5000) {
+    const oldWindow = window - 1;
+    for (const k of fpCounts.keys()) {
+      if (!k.endsWith(`:${window}`)) fpCounts.delete(k);
+    }
+  }
+  return true;
+}
+
 // ── HANDLER ───────────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-PoW-Challenge, X-PoW-Nonce, X-Fingerprint");
 
   if (req.method === "OPTIONS") return res.status(200).end();
+
+  // GET /api/chat?challenge=1 — ambil PoW challenge
+  if (req.method === "GET") {
+    cleanChallenges();
+    const challenge = generateChallenge();
+    return res.status(200).json({ challenge, difficulty: POW_DIFFICULTY });
+  }
+
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  // Fingerprint check
+  const fp = getFingerprint(req);
+  if (!checkRateLimit(fp)) {
+    return res.status(429).json({ ok: false, error: "Rate limit exceeded. Coba lagi dalam beberapa menit." });
+  }
+
+  // PoW verification
+  const powChallenge = req.headers["x-pow-challenge"] || req.body?.powChallenge;
+  const powNonce = req.headers["x-pow-nonce"] || req.body?.powNonce;
+
+  if (powChallenge && powNonce) {
+    const entry = challenges.get(powChallenge);
+    if (!entry) {
+      return res.status(403).json({ ok: false, error: "Challenge expired atau tidak valid.", needChallenge: true });
+    }
+    if (entry.solved) {
+      return res.status(403).json({ ok: false, error: "Challenge sudah dipakai.", needChallenge: true });
+    }
+    if (!verifyPoW(powChallenge, powNonce)) {
+      return res.status(403).json({ ok: false, error: "PoW solution salah.", needChallenge: true });
+    }
+    // Mark as solved
+    challenges.set(powChallenge, { ...entry, solved: true });
+  }
+  // PoW optional untuk sekarang — bisa diaktifkan dengan uncomment:
+  // else { return res.status(403).json({ ok: false, error: "PoW required.", needChallenge: true }); }
 
   try {
     const { prompt, history, webSearch, fileContent, fileName, model } = req.body;
@@ -275,8 +364,12 @@ module.exports = async function handler(req, res) {
       result = await blackboxChat(finalPrompt, { history, webSearch });
     }
 
-    return res.status(200).json(result);
+    // Attach fingerprint info ke response
+    return res.status(200).json({ ...result, _fp: fp.slice(0, 8) });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
   }
 };
+
+// ── POW + FINGERPRINT ────────────────────────────────────────────────────────
+// Sudah di-handle di handler utama (lihat pow check di module.exports)
