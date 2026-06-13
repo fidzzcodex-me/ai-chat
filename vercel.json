@@ -1,9 +1,12 @@
 {
   "functions": {
-    "api/chat.js": { "memory": 512, "maxDuration": 30 },
-    "api/auth.js": { "memory": 256, "maxDuration": 10 },
-    "api/user.js": { "memory": 256, "maxDuration": 10 }
+    "api/chat.js": {
+      "memory": 512,
+      "maxDuration": 30
+    }
   },
-  "cleanUrls": true,
-  "trailingSlash": false
+  "rewrites": [
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/(.*)", "destination": "/public/$1" }
+  ]
 }
