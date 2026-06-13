@@ -79,9 +79,23 @@
     .oauth-loading.show{display:flex}
     .oauth-loading-spinner{width:36px;height:36px;border:3px solid var(--b2);border-top-color:var(--b5);border-radius:50%;animation:spin .8s linear infinite}
     .oauth-loading-text{font-size:.85rem;color:var(--g6);font-weight:500}
+
+    /* VISUAL EFFECTS */
+    .bg-effects{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5}
+    .glow-1{width:400px;height:400px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(37,99,235,.12),transparent 70%);animation:gf 10s ease-in-out infinite}
+    .glow-2{width:350px;height:350px;bottom:-80px;right:-80px;background:radial-gradient(circle,rgba(96,165,250,.1),transparent 70%);animation:gf 13s ease-in-out infinite reverse}
+    @keyframes gf{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,15px)}}
+    .particle{position:absolute;border-radius:50%;background:var(--b4);opacity:0;animation:pf linear infinite}
+    @keyframes pf{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.3}90%{opacity:.1}100%{transform:translateY(-10vh) scale(.5);opacity:0}}
   </style>
 </head>
 <body>
+
+<div class="bg-effects" id="bgEffects">
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+</div>
 
 <div class="oauth-loading" id="oauthLoading">
   <div class="oauth-loading-spinner"></div>
@@ -317,6 +331,16 @@ function clearAlerts() {
 }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-<script>AOS.init({ once: true, easing: 'ease-out-cubic', duration: 500 })</script>
+<script>AOS.init({ once: true, easing: 'ease-out-cubic', duration: 500 })
+
+// Particles
+const bg = document.getElementById('bgEffects')
+for (let i = 0; i < 12; i++) {
+  const p = document.createElement('div')
+  p.className = 'particle'
+  const size = 2 + Math.random() * 3
+  p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*10}s`
+  bg.appendChild(p)
+}</script>
 </body>
 </html>
