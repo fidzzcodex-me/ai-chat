@@ -49,19 +49,26 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   if (req.method === 'OPTIONS') return res.status(200).end()
 
+  // Redirect jika akses /api/auth langsung
+  if (req.method === 'GET') {
+    const u = new URL(req.url, `https://${req.headers.host}`)
+    const cleanPath = u.pathname.replace(/^\/api\/auth\/?/, '') || '/'
+    if (cleanPath === '' || cleanPath === '/') {
+      const siteUrl = process.env.SITE_URL || `https://${req.headers.host}`
+      res.setHeader('Location', `${siteUrl}/login`)
+      return res.status(302).end()
+    }
+  }
+
   // Always return JSON
   res.setHeader('Content-Type', 'application/json')
 
-// Tambahkan di awal handler
-if (req.method === 'GET' && path === '/') {
-  return res.redirect(302, `${process.env.SITE_URL}/login`);
-}
-  
   let path = '/'
   try {
     const u = new URL(req.url, `https://${req.headers.host}`)
     path = u.pathname.replace(/^\/api\/auth/, '') || '/'
   } catch {}
+  // ... (sisanya kode lama tetap sama)
 
   try {
     const { url, key } = supabase()
