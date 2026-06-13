@@ -177,7 +177,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
-AOS.init({ once: true, easing: 'ease-out-cubic' })
 const API = ''
 
 // Check if already logged in
@@ -317,5 +316,7 @@ function clearAlerts() {
   document.getElementById('alertOk').classList.remove('show')
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>AOS.init({ once: true, easing: 'ease-out-cubic', duration: 500 })</script>
 </body>
 </html>
