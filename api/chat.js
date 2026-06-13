@@ -132,7 +132,8 @@ async function blackboxChat(prompt, options = {}) {
   }
 }
 
-// ── GEMINI ────────────────────────────────────────────────────────────────────.parse(s) } catch { continue }
+// ── GEMINI ────────────────────────────────────────────────────────────────────.parse(s) } catch { continue }    if (!gemCtx) await gemBootstrap();
+
     const crypto = require("crypto");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0";
@@ -147,16 +148,35 @@ let gemCtx = null;
 let gemResume = ["", "", ""];
 
 async function gemBootstrap() {
-    const res = await fetch(HOME, { headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" } });
-    const setc = res.headers.getSetCookie ? res.headers.getSetCookie() : [];
+    const res = await fetch(HOME, {
+        headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" }
+    });
+    const setc = res.headers.getSetCookie?.() || [];
     const cookie = setc.map(c => c.split(";")[0]).join("; ");
     const html = await res.text();
-    gemCtx = {
-        cookie,
-        bl: (html.match(/"cfb2h":"(.*?)"/) || [])[1] || "",
-        fsid: (html.match(/"FdrFJe":"(.*?)"/) || [])[1] || "",
-        uid: uuid()
-    };
+
+    let bl = (html.match(/"cfb2h":"(.*?)"/) || [])[1] || "";
+    if (!bl) bl = (html.match(/"SNlM0e":"(.*?)"/) || [])[1] || "";
+    let fsid = (html.match(/"FdrFJe":"(.*?)"/) || [])[1] || "";
+
+    if (!bl || !fsid) {
+        const nd = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
+        if (nd) {
+            try {
+                const bard = JSON.parse(nd[1])?.props?.pageProps?.serverState?.BardStateData;
+                if (bard) {
+                    bl = bl || bard.cfb2h || bard.SNlM0e || "";
+                    fsid = fsid || bard.FdrFJe || "";
+                }
+            } catch(e) {}
+        }
+    }
+
+    if (!bl || !fsid) return null;
+
+    gemCtx = { cookie, bl, fsid, uid: uuid() };
+    gemResume = ["", "", ""];
+    return gemCtx;
 }
 
 function gemBuildBody(message, resume, uid) {
@@ -204,7 +224,10 @@ function gemParseReply(raw) {
 }
 
 async function geminiChat(prompt) {
-    if (!gemCtx) await gemBootstrap();
+    if (!gemCtx) {
+        const ctx = await gemBootstrap();
+        if (!ctx) throw new Error("Failed to bootstrap");
+    }
 
     const resume = gemResume[0]
         ? [gemResume[0], gemResume[1], gemResume[2], null, null, null, null, null, null, ""]
@@ -231,21 +254,35 @@ async function geminiChat(prompt) {
 
     const raw = await res.text();
 
-    if (raw.includes("login") || raw.includes("auth")) {
+    if (raw.startsWith("<!DOCTYPE") || raw.startsWith("<html") || raw.startsWith("A server")) {
         gemCtx = null;
-        throw new Error("Session expired, retry");
+        return geminiChat(prompt);
     }
 
     const reply = gemParseReply(raw);
 
-    if (!reply.text) throw new Error("Empty response");
+    if (!reply.text) {
+        gemCtx = null;
+        return geminiChat(prompt);
+    }
 
     if (reply.cid) gemResume = [reply.cid, reply.rid || "", reply.rpid || ""];
 
-    return { ok: true, text: reply.text };
+    const artifacts = [];
+    const cleanText = reply.text.replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g, (_, filename, content) => {
+        artifacts.push({ filename: filename.trim(), content: content.trim() });
+        return `[[ARTIFACT_${artifacts.length - 1}]]`;
+    });
+
+    return {
+        ok: true,
+        text: cleanText.trim(),
+        artifacts,
+        resume: [reply.cid || "", reply.rid || "", reply.rpid || ""]
+    };
 }
 
-module.exports = { geminiChat };
+
 
 // ── HANDLER ───────────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
