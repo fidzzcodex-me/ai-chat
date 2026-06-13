@@ -1,23 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>KRY AI — Your Intelligent Assistant</title>
-  <meta name="description" content="KRY AI is an intelligent assistant that can analyze files, read images with OCR, extract ZIPs, and generate downloadable files." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+  <meta name="description" content="KRY AI — analisis file, OCR gambar, baca ZIP, generate file, search web."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"/>
   <style>
-    :root{--b7:#1d4ed8;--b6:#2563eb;--b5:#3b82f6;--b4:#60a5fa;--b2:#bfdbfe;--b1:#dbeafe;--b0:#eff6ff;--g8:#1e293b;--g7:#334155;--g6:#475569;--g5:#64748b;--g4:#94a3b8;--g2:#e2e8f0;--g1:#f1f5f9;--g0:#f8fafc;--w:#fff;--r:12px;--rs:8px;--tr:.2s cubic-bezier(.4,0,.2,1)}
+    :root{
+      --b7:#1d4ed8;--b6:#2563eb;--b5:#3b82f6;--b4:#60a5fa;
+      --b2:#bfdbfe;--b1:#dbeafe;--b0:#eff6ff;
+      --g8:#1e293b;--g7:#334155;--g6:#475569;--g5:#64748b;
+      --g4:#94a3b8;--g2:#e2e8f0;--g1:#f1f5f9;--g0:#f8fafc;
+      --w:#fff;--r:12px;--rs:8px;--tr:.2s cubic-bezier(.4,0,.2,1)
+    }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{font-size:15px;scroll-behavior:smooth}
-    body{font-family:'Inter',sans-serif;background:var(--w);color:var(--g8);overflow-x:hidden;line-height:1.6}
+    body{font-family:'Inter',sans-serif;background:var(--w);color:var(--g8);line-height:1.6;overflow-x:hidden}
 
-    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--b1);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    /* BG EFFECTS */
+    .bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .glow{position:absolute;border-radius:50%;filter:blur(90px)}
+    .glow-1{width:520px;height:520px;top:-160px;left:-120px;background:rgba(37,99,235,.09);animation:gf 12s ease-in-out infinite}
+    .glow-2{width:420px;height:420px;bottom:-120px;right:-100px;background:rgba(96,165,250,.07);animation:gf 15s ease-in-out infinite reverse}
+    .glow-3{width:300px;height:300px;top:40%;left:50%;transform:translateX(-50%);background:rgba(37,99,235,.05);animation:gf 18s ease-in-out infinite 3s}
+    @keyframes gf{0%,100%{transform:translate(0,0)}50%{transform:translate(22px,16px)}}
+    .particle{position:absolute;border-radius:50%;background:#93c5fd;opacity:0;animation:pf linear infinite}
+    @keyframes pf{0%{transform:translateY(100vh);opacity:0}5%{opacity:.3}90%{opacity:.1}100%{transform:translateY(-5vh);opacity:0}}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
     .nlogo{display:flex;align-items:center;gap:8px;text-decoration:none}
-    .nmark{width:30px;height:30px;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-weight:700;font-size:.65rem;color:#fff;letter-spacing:-.5px}
+    .nmark{width:30px;height:30px;background:linear-gradient(135deg,var(--b7),var(--b5));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-weight:700;font-size:.65rem;color:#fff}
     .ntext{font-family:'Sora',sans-serif;font-weight:700;font-size:.95rem;background:linear-gradient(135deg,var(--b6),var(--b5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .nright{display:flex;align-items:center;gap:7px}
     .nbtn{padding:7px 15px;border-radius:20px;font-size:.8rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;text-decoration:none;transition:all var(--tr);border:none;display:inline-flex;align-items:center;gap:5px}
@@ -27,14 +44,12 @@
     .nbtn.solid:hover{filter:brightness(1.07);transform:translateY(-1px)}
 
     /* HERO */
-    .hero{padding:118px 24px 72px;text-align:center;position:relative;overflow:hidden}
-    .hero::before{content:'';position:absolute;top:-180px;left:50%;transform:translateX(-50%);width:640px;height:640px;background:radial-gradient(circle,rgba(37,99,235,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
-    .hero>*{position:relative;z-index:1}
+    .hero{position:relative;z-index:1;padding:118px 24px 72px;text-align:center}
     .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;background:var(--b0);border:1px solid var(--b2);border-radius:20px;font-size:.72rem;font-weight:600;color:var(--b6);margin-bottom:22px;font-family:'Fira Code',monospace}
-    .bdot{width:6px;height:6px;background:var(--b5);border-radius:50%;animation:bpulse 2s ease-in-out infinite}
-    @keyframes bpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
-    h1{font-family:'Sora',sans-serif;font-size:clamp(1.9rem,5vw,3rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;color:var(--g8);margin-bottom:16px;max-width:640px;margin-left:auto;margin-right:auto}
-    h1 span{background:linear-gradient(135deg,var(--b6),var(--b4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .bdot{width:6px;height:6px;background:var(--b5);border-radius:50%;animation:bp 2s ease-in-out infinite}
+    @keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
+    .hero h1{font-family:'Sora',sans-serif;font-size:clamp(1.9rem,5vw,3rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;margin-bottom:16px}
+    .hero h1 span{background:linear-gradient(135deg,var(--b6),var(--b4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .hero p{font-size:.95rem;color:var(--g5);max-width:440px;margin:0 auto 32px;line-height:1.7}
     .hbtns{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin-bottom:52px}
     .btnp{padding:11px 26px;background:linear-gradient(135deg,var(--b6),var(--b5));color:#fff;border:none;border-radius:var(--r);font-size:.88rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all var(--tr);box-shadow:0 4px 18px rgba(37,99,235,.24)}
@@ -43,7 +58,7 @@
     .btns:hover{border-color:var(--b4);color:var(--b6);transform:translateY(-2px)}
 
     /* PREVIEW */
-    .preview{max-width:780px;margin:0 auto;padding:0 24px}
+    .preview{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0 24px}
     .pcard{background:var(--w);border:1px solid var(--g2);border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(37,99,235,.09)}
     .ptop{background:var(--g0);border-bottom:1px solid var(--g2);padding:10px 14px;display:flex;align-items:center;gap:7px}
     .pdots{display:flex;gap:4px}
@@ -66,7 +81,7 @@
     .farrow{margin-left:auto;width:22px;height:22px;background:var(--b0);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--b6)}
 
     /* FEATURES */
-    .sec{padding:72px 24px;max-width:940px;margin:0 auto}
+    .sec{position:relative;z-index:1;padding:72px 24px;max-width:940px;margin:0 auto}
     .slabel{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--b6);margin-bottom:9px;font-family:'Fira Code',monospace}
     .stitle{font-family:'Sora',sans-serif;font-size:clamp(1.4rem,3vw,1.85rem);font-weight:700;color:var(--g8);letter-spacing:-.025em;margin-bottom:10px}
     .ssub{font-size:.88rem;color:var(--g5);max-width:400px;line-height:1.65;margin-bottom:40px}
@@ -78,7 +93,7 @@
     .fcd{font-size:.77rem;color:var(--g5);line-height:1.55}
 
     /* CTA */
-    .cta{background:linear-gradient(135deg,var(--b7),var(--b5));padding:60px 24px;text-align:center;overflow:hidden;position:relative}
+    .cta{position:relative;z-index:1;background:linear-gradient(135deg,var(--b7),var(--b5));padding:60px 24px;text-align:center;overflow:hidden}
     .cta::before,.cta::after{content:'';position:absolute;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.05)}
     .cta::before{width:280px;height:280px;top:-80px;right:-60px}
     .cta::after{width:220px;height:220px;bottom:-70px;left:-50px}
@@ -87,7 +102,7 @@
     .btnw{padding:11px 26px;background:var(--w);color:var(--b6);border:none;border-radius:var(--r);font-size:.88rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all var(--tr);box-shadow:0 4px 18px rgba(0,0,0,.14);position:relative}
     .btnw:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.2)}
 
-    footer{padding:24px;border-top:1px solid var(--g2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    footer{position:relative;z-index:1;padding:24px;border-top:1px solid var(--g2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
     .fcopy{font-size:.74rem;color:var(--g4)}
     .flinks{display:flex;gap:14px}
     .flinks a{font-size:.74rem;color:var(--g4);text-decoration:none;transition:color var(--tr)}
@@ -99,22 +114,15 @@
       .nbtn.ghost{display:none}
       footer{justify-content:center;text-align:center}
     }
-
-    /* VISUAL EFFECTS */
-    .bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-    .glow{position:absolute;border-radius:50%;filter:blur(80px);opacity:.45}
-    .glow-1{width:500px;height:500px;top:-150px;left:-100px;background:radial-gradient(circle,rgba(37,99,235,.1),transparent 70%);animation:gf 12s ease-in-out infinite}
-    .glow-2{width:400px;height:400px;bottom:-100px;right:-80px;background:radial-gradient(circle,rgba(96,165,250,.08),transparent 70%);animation:gf 15s ease-in-out infinite reverse}
-    @keyframes gf{0%,100%{transform:translate(0,0)}50%{transform:translate(25px,18px)}}
-    .particle{position:absolute;border-radius:50%;background:#60a5fa;opacity:0;animation:pf linear infinite}
-    @keyframes pf{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.25}90%{opacity:.08}100%{transform:translateY(-10vh) scale(.5);opacity:0}}
   </style>
 </head>
 <body>
 
+<!-- BG -->
 <div class="bg-fx" id="bgFx">
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
 </div>
 
 <nav>
@@ -124,17 +132,21 @@
   </a>
   <div class="nright">
     <a href="/login" class="nbtn ghost">Sign in</a>
-    <a href="/login?tab=register" class="nbtn solid">
-      Get started
-    </a>
+    <a href="/login?tab=register" class="nbtn solid">Get started</a>
   </div>
 </nav>
 
 <section class="hero">
-  <div class="badge" data-aos="fade-down"><div class="bdot"></div>AI · File Analysis · Web Search</div>
-  <h1 data-aos="fade-up" data-aos-delay="80">Chat smarter with <span>KRY AI</span></h1>
-  <p data-aos="fade-up" data-aos-delay="150">Analisis file & gambar, baca ZIP, generate file, dan search web — semua dalam satu chat.</p>
-  <div class="hbtns" data-aos="fade-up" data-aos-delay="220">
+  <div class="badge" data-aos="fade-down" data-aos-offset="0">
+    <div class="bdot"></div>AI · File Analysis · Web Search
+  </div>
+  <h1 data-aos="fade-up" data-aos-delay="100" data-aos-offset="0">
+    Chat smarter with <span>KRY AI</span>
+  </h1>
+  <p data-aos="fade-up" data-aos-delay="180" data-aos-offset="0">
+    Analisis file & gambar, baca ZIP, generate file, dan search web — semua dalam satu chat.
+  </p>
+  <div class="hbtns" data-aos="fade-up" data-aos-delay="240" data-aos-offset="0">
     <a href="/login?tab=register" class="btnp">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       Start for free
@@ -142,7 +154,7 @@
     <a href="/login" class="btns">Sign in</a>
   </div>
 
-  <div class="preview" data-aos="fade-up" data-aos-delay="300">
+  <div class="preview" data-aos="fade-up" data-aos-delay="320" data-aos-offset="0">
     <div class="pcard">
       <div class="ptop">
         <div class="pdots"><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
@@ -160,8 +172,8 @@
         <div class="cb">
           <div class="cav">&gt;_</div>
           <div style="display:flex;flex-direction:column;gap:7px;max-width:82%">
-            <div class="cm ai">Siap! Script sudah dibuat dan siap download:</div>
-            <div class="frow" onclick="">
+            <div class="cm ai">Siap! Script sudah dibuat:</div>
+            <div class="frow">
               <div class="ficon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
               <div class="fin"><div class="fn">analyze.py</div><div class="fs">Click to download · 2.4 KB</div></div>
               <div class="farrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
@@ -174,36 +186,36 @@
 </section>
 
 <section class="sec">
-  <div class="slabel">Capabilities</div>
-  <div class="stitle">Semua yang kamu butuhkan</div>
-  <div class="ssub">Dari analisis file sampai generate kode — KRY AI siap bantu.</div>
+  <div class="slabel" data-aos="fade-up" data-aos-offset="0">Capabilities</div>
+  <div class="stitle" data-aos="fade-up" data-aos-delay="60" data-aos-offset="0">Semua yang kamu butuhkan</div>
+  <div class="ssub" data-aos="fade-up" data-aos-delay="100" data-aos-offset="0">Dari analisis file sampai generate kode — KRY AI siap bantu.</div>
   <div class="fgrid">
-    <div class="fc">
+    <div class="fc" data-aos="fade-up" data-aos-delay="0" data-aos-offset="0">
       <div class="fci"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
       <div class="fct">OCR Gambar</div>
       <div class="fcd">Upload foto, AI ekstrak semua teks menggunakan Tesseract.js langsung di browser.</div>
     </div>
-    <div class="fc">
+    <div class="fc" data-aos="fade-up" data-aos-delay="80" data-aos-offset="0">
       <div class="fci"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
       <div class="fct">ZIP Extraction</div>
       <div class="fcd">Upload ZIP, semua file teks di dalamnya otomatis diekstrak dan dianalisis.</div>
     </div>
-    <div class="fc">
+    <div class="fc" data-aos="fade-up" data-aos-delay="160" data-aos-offset="0">
       <div class="fci"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
       <div class="fct">Generate & Download File</div>
-      <div class="fcd">AI generate .py, .js, .html, .json, .zip dan lainnya. Download satu klik.</div>
+      <div class="fcd">AI generate .py, .js, .html, .json dan lainnya. Download satu klik.</div>
     </div>
-    <div class="fc">
+    <div class="fc" data-aos="fade-up" data-aos-delay="0" data-aos-offset="0">
       <div class="fci"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
       <div class="fct">Web Search</div>
       <div class="fcd">Toggle web search untuk jawaban real-time dari internet.</div>
     </div>
-    <div class="fc">
+    <div class="fc" data-aos="fade-up" data-aos-delay="80" data-aos-offset="0">
       <div class="fci"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
       <div class="fct">Code Analysis</div>
       <div class="fcd">Upload kode Python, JS, Go, Rust — AI analisis, debug, dan improve.</div>
     </div>
-    <div class="fc">
+    <div class="fc" data-aos="fade-up" data-aos-delay="160" data-aos-offset="0">
       <div class="fci"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
       <div class="fct">Akun & Riwayat</div>
       <div class="fcd">Login Google atau GitHub. Riwayat chat tersimpan otomatis.</div>
@@ -234,13 +246,16 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
-AOS.init({ once: true, easing: 'ease-out-cubic', duration: 560 })
+// AOS — offset:0 so animations trigger immediately on mobile
+AOS.init({ once: true, duration: 600, easing: 'ease-out-cubic', offset: 0 })
+
+// Floating particles
 const bg = document.getElementById('bgFx')
-for (let i = 0; i < 14; i++) {
+for (let i = 0; i < 16; i++) {
   const p = document.createElement('div')
   p.className = 'particle'
   const s = 2 + Math.random() * 3
-  p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${10+Math.random()*16}s;animation-delay:${Math.random()*12}s`
+  p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${12+Math.random()*16}s;animation-delay:${Math.random()*14}s`
   bg.appendChild(p)
 }
 </script>
