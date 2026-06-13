@@ -32,6 +32,7 @@ Wrap your final reply between <answer> and </answer> tags.`
 
 const OPEN_TAG = /^(?:<answer>|answer>|nswer>|swer>|wer>|er>|r>|>)\s*/
 
+// ── BLACKBOX ──────────────────────────────────────────────────────────────────
 let cachedValidated = FALLBACK_VALIDATED
 
 function randomId(len = 7) {
@@ -46,30 +47,22 @@ function isRejected(raw) {
 }
 
 function parseResponse(raw) {
-  // Extract <think> blocks
   const thinkParts = []
   let body = raw.replace(/<think>([\s\S]*?)<\/think>/g, (_, t) => {
     thinkParts.push(t.trim())
     return ""
   })
-
-  // Extract <answer> wrapper
   const end = body.indexOf("</answer>")
   if (end !== -1) body = body.slice(0, end)
   body = body.trimStart().replace(OPEN_TAG, "").trim()
 
-  // Extract artifact blocks: ```artifact:filename\ncontent\n```
   const artifacts = []
   body = body.replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g, (_, filename, content) => {
     artifacts.push({ filename: filename.trim(), content: content.trim() })
     return `[[ARTIFACT_${artifacts.length - 1}]]`
   })
 
-  return {
-    text: body.trim(),
-    think: thinkParts.join("\n\n").trim() || null,
-    artifacts
-  }
+  return { text: body.trim(), think: thinkParts.join("\n\n").trim() || null, artifacts }
 }
 
 async function fetchValidated() {
@@ -85,7 +78,7 @@ async function fetchValidated() {
   return found.find(Boolean) || null
 }
 
-function buildPayload(messages, validated, options) {
+function buildBBPayload(messages, validated, options) {
   const { webSearch = false } = options
   return {
     messages,
@@ -118,19 +111,15 @@ async function bbRequest(payload) {
 async function blackboxChat(prompt, options = {}) {
   const history = Array.isArray(options.history) ? options.history : []
   const userMsg = { id: randomId(), role: "user", content: String(prompt) }
-  const wrapped = [
-    { id: randomId(), role: "system", content: SYSTEM },
-    ...history,
-    userMsg
-  ]
+  const wrapped = [{ id: randomId(), role: "system", content: SYSTEM }, ...history, userMsg]
 
-  let raw = await bbRequest(buildPayload(wrapped, cachedValidated, options))
+  let raw = await bbRequest(buildBBPayload(wrapped, cachedValidated, options))
 
   if (isRejected(raw)) {
     const fresh = await fetchValidated()
     if (fresh && fresh !== cachedValidated) {
       cachedValidated = fresh
-      raw = await bbRequest(buildPayload(wrapped, cachedValidated, options))
+      raw = await bbRequest(buildBBPayload(wrapped, cachedValidated, options))
     }
   }
 
@@ -138,18 +127,146 @@ async function blackboxChat(prompt, options = {}) {
 
   const { text, think, artifacts } = parseResponse(raw)
   return {
-    ok: true,
-    text,
-    think,
-    artifacts,
-    history: [
-      ...history,
-      userMsg,
-      { id: randomId(), role: "assistant", content: text }
-    ]
+    ok: true, text, think, artifacts,
+    history: [...history, userMsg, { id: randomId(), role: "assistant", content: text }]
   }
 }
 
+// ── GEMINI ────────────────────────────────────────────────────────────────────
+const GEM_HOME = "https://gemini.google.com/app"
+const GEM_EP   = "https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate"
+
+// Per-process Gemini session (reused across requests on same server instance)
+let gemCtx = null
+let gemResume = ["", "", ""]
+
+function gemHex(n) {
+  let s = ""
+  for (let i = 0; i < n * 2; i++) s += "0123456789abcdef"[Math.floor(Math.random() * 16)]
+  return s
+}
+
+function gemUuid() {
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+    (c ^ (Math.random() * 16 >> c / 4)).toString(16)).toUpperCase()
+}
+
+function gemReqid() { return Math.floor(Math.random() * 900000) + 100000 }
+
+async function gemBootstrap() {
+  const res = await fetch(GEM_HOME, {
+    headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" }
+  })
+  const setc = res.headers.getSetCookie ? res.headers.getSetCookie() : []
+  const cookie = setc.map(c => c.split(";")[0]).join("; ")
+  const html = await res.text()
+  gemCtx = {
+    cookie,
+    bl: ((html.match(/"cfb2h":"(.*?)"/) || [, ""])[1]) || "",
+    fsid: ((html.match(/"FdrFJe":"(.*?)"/) || [, ""])[1]) || "",
+    uid: gemUuid()
+  }
+}
+
+function gemBuildBody(message, resume, uid) {
+  const inner = [
+    [message, 0, null, null, null, null, 0],
+    ["en-US"],
+    resume, "", gemHex(16), null, [1], 1, null, null, 1, 0,
+    null, null, null, null, null, [[0]], 0, null, null, null, null,
+    null, null, null, null, 1, null, null, [4], null, null, null,
+    null, null, null, null, null, null, null, [2], null, null, null,
+    null, null, null, null, null, null, null, null, 0, null, null,
+    null, null, null, uid, null, [], null, null, null, null, null,
+    null, 2, null, null, null, null, null, null, null, null, null,
+    null, 1
+  ]
+  return "f.req=" + encodeURIComponent(JSON.stringify([null, JSON.stringify(inner)])) + "&"
+}
+
+function gemParseReply(raw) {
+  let best = "", cid = null, rid = null, rpid = null
+  for (const line of (raw || "").split("\n")) {
+    const s = line.trim()
+    if (!s.startsWith('[["wrb.fr"')) continue
+    let outer; try { outer = JSON.parse(s) } catch { continue }
+    for (const row of outer) {
+      if (!Array.isArray(row) || row[0] !== "wrb.fr" || typeof row[2] !== "string") continue
+      let body; try { body = JSON.parse(row[2]) } catch { continue }
+      const ids = body[1]
+      if (Array.isArray(ids)) {
+        if (typeof ids[0] === "string" && ids[0].startsWith("c_")) cid = ids[0]
+        if (typeof ids[1] === "string" && ids[1].startsWith("r_")) rid = ids[1]
+      }
+      const seg = Array.isArray(body[4]) ? body[4][0] : null
+      if (seg) {
+        if (seg[0]) rpid = seg[0]
+        if (Array.isArray(seg[1])) {
+          const p = seg[1].join("")
+          if (p.length > best.length) best = p
+        }
+      }
+    }
+  }
+  return { text: best.trim(), cid, rid, rpid }
+}
+
+async function geminiChat(prompt, options = {}) {
+  // Bootstrap if no context yet, or if caller requests fresh session
+  if (!gemCtx || options.freshSession) await gemBootstrap()
+
+  // Use provided resume or server-side state
+  const resume = options.resume && options.resume[0]
+    ? [...options.resume.slice(0, 3), null, null, null, null, null, null, ""]
+    : (gemResume[0]
+        ? [gemResume[0], gemResume[1], gemResume[2], null, null, null, null, null, null, ""]
+        : ["", "", "", null, null, null, null, null, null, ""])
+
+  const url = `${GEM_EP}?bl=${encodeURIComponent(gemCtx.bl)}&f.sid=${encodeURIComponent(gemCtx.fsid)}&hl=en-US&_reqid=${gemReqid()}&rt=c`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+      "user-agent": UA,
+      "origin": "https://gemini.google.com",
+      "referer": "https://gemini.google.com/",
+      "x-same-domain": "1",
+      "x-goog-ext-525001261-jspb": JSON.stringify([1, null, null, null, gemHex(8), null, null, 0, [4, 6], null, null, 1, null, null, 1, null, gemUuid()]),
+      "x-goog-ext-525005358-jspb": JSON.stringify([gemCtx.uid, 1]),
+      "x-goog-ext-73010990-jspb": "[0,0,0]",
+      "x-goog-ext-73010989-jspb": "[0]",
+      "cookie": gemCtx.cookie
+    },
+    body: gemBuildBody(String(prompt), resume, gemCtx.uid)
+  })
+
+  const raw = await res.text()
+  const reply = gemParseReply(raw)
+
+  if (!reply.text) throw new Error("Gemini tidak merespons. Coba lagi.")
+
+  // Update server-side resume for next call
+  if (reply.cid) gemResume = [reply.cid, reply.rid || "", reply.rpid || ""]
+
+  // Parse artifact blocks from Gemini response (same format as Blackbox)
+  const artifacts = []
+  const cleanText = reply.text.replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g, (_, filename, content) => {
+    artifacts.push({ filename: filename.trim(), content: content.trim() })
+    return `[[ARTIFACT_${artifacts.length - 1}]]`
+  })
+
+  return {
+    ok: true,
+    text: cleanText.trim(),
+    think: null,
+    artifacts,
+    resume: [reply.cid || "", reply.rid || "", reply.rpid || ""],
+    history: [] // Gemini is stateful server-side via gemResume, no need to replay history
+  }
+}
+
+// ── HANDLER ───────────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -159,17 +276,24 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" })
 
   try {
-    const { prompt, history, webSearch, fileContent, fileName } = req.body
+    const { prompt, history, webSearch, fileContent, fileName, model, gemResume: clientResume, freshSession } = req.body
 
     let finalPrompt = prompt || ""
-
     if (fileContent) {
       finalPrompt = `[Attached file: ${fileName || "file"}]\n\n--- FILE CONTENT ---\n${fileContent}\n--- END ---\n\nUser: ${prompt || "Please analyze this file."}`
     }
-
     if (!finalPrompt.trim()) finalPrompt = "Hello"
 
-    const result = await blackboxChat(finalPrompt, { history, webSearch })
+    let result
+    if (model === "gemini") {
+      result = await geminiChat(finalPrompt, {
+        resume: clientResume,
+        freshSession: !!freshSession
+      })
+    } else {
+      result = await blackboxChat(finalPrompt, { history, webSearch })
+    }
+
     return res.status(200).json(result)
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message })
